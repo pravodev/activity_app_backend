@@ -72,7 +72,7 @@ class ActivityRepositoryImplementation extends BaseRepositoryImplementation impl
 
         $activities = $activities->map(function($activity){
             $left = $activity->target - $activity->score;
-            $is_red = $activity->score < $activity->target;
+            $is_red_count = $activity->count < $activity->target;
             
             $data = [
                 'id' => $activity->id,
@@ -118,10 +118,13 @@ class ActivityRepositoryImplementation extends BaseRepositoryImplementation impl
 
             } else if($activity->type == 'badhabit') {
                 $is_red = $activity->score > $activity->target;
+            } else {
+                $is_red = $activity->score < $activity->target;
             }
 
             $data['left'] = $left < 0 ? 0 : $left;
             $data['is_red'] = $is_red;
+            $data['is_red_count'] = $is_red_count;
             $data['histories'] = $activity->histories;
 
             return $data;
@@ -135,6 +138,20 @@ class ActivityRepositoryImplementation extends BaseRepositoryImplementation impl
             $activity = Activity::find($id);
             $activity->position = $position;
             $activity->save();
+        }
+    }
+
+    public function delete($id)
+    {
+        $activity = $this->builder->find($id);
+
+        if($activity) {
+            if($activity->histories()->count()) {
+                return $activity->delete();
+            } else {
+                return $activity->forceDelete();
+            }
+            
         }
     }
 }

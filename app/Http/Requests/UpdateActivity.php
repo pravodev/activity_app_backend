@@ -28,7 +28,12 @@ class UpdateActivity extends FormRequest
         return [
             'type' => 'required|in:value,count,speedrun,alarm,badhabit',
             'description' => 'nullable|string',
-            'title' => 'required|string|unique:activities,title,'.$id,
+            // 'title' => 'required|string|unique:activities,title,'.$id,
+            'title' => [
+                'required',
+                'string',
+                "unique:activities,title,{$id},id,deleted_at,NULL"
+            ],
             'value' => [
                 'required_if:type,value,speedrun',
                 new SpeedrunRule(request()->type)

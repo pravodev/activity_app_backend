@@ -49,9 +49,17 @@ class SpeedrunRule implements Rule
                     preg_match_all('!\d+!', $value, $matches);
                     $number = $matches[0][0] ?? null;
 
-                    if($number > 59) {
-                        return false;
+                    if($i == count($split)-1) {
+                        if($number > 999) {
+                            return false;
+                        }
+                        continue;
+                    } else {
+                        if($number > 59) {
+                            return false;
+                        }
                     }
+                    
                 }
 
                 return true;

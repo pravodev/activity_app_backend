@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use App\Rules\SpeedrunRule;
+use Illuminate\Validation\Rule;
 
 class StoreActivity extends FormRequest
 {
@@ -26,7 +27,12 @@ class StoreActivity extends FormRequest
     {
         return [
             'type' => 'required|in:value,count,speedrun,alarm,badhabit',
-            'title' => 'required|string|unique:activities',
+            // 'title' => 'required|string|unique:activities',
+            'title' => [
+                'required',
+                'string',
+                Rule::unique('activities')->whereNull('deleted_at'),
+            ],
             'description' => 'nullable|string',
             'value' => [
                 'required_if:type,value,speedrun',

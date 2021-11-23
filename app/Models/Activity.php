@@ -20,6 +20,7 @@ class Activity extends Model
         'speedrun_parsed',
         'target',
         'is_red',
+        'type_text',
     ];
 
     protected $casts = [
@@ -151,5 +152,23 @@ class Activity extends Model
         }
 
         return $is_red;
+    }
+
+    public function getTypeTextAttribute()
+    {
+        $type = $this->type;
+
+        $options = [
+            'value' => 'Number Count',
+            'count' => 'Text Count',
+            'speedrun' => 'Speedrun',
+            'badhabit' => 'Bad Habit'
+        ];
+
+        if(in_array($type, array_keys($options))) {
+            return $options[$type];
+        }
+
+        return $type;
     }
 }
