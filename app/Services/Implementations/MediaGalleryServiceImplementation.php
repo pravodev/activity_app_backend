@@ -50,7 +50,16 @@ class MediaGalleryServiceImplementation implements MediaGalleryServiceContract {
     }
 
     public function delete($id) {
-        return $this->mediaGalleryRepo->delete($id);
+        $media = $this->mediaGalleryRepo->find($id);
+        
+        $delete = $this->mediaGalleryRepo->delete($id);
+
+        if($media) {
+            Storage::delete($media->thumbnail);
+            Storage::delete($media->value);
+        }
+
+        return $delete;
     }
 
     public function search($fields) {

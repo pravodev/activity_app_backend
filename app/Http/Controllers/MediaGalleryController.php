@@ -11,6 +11,7 @@ use App\Services\Contracts\MediaGalleryServiceContract as MediaGalleryService;
 use App\Exceptions\GetDataFailedException;
 use App\Exceptions\StoreDataFailedException;
 use App\Exceptions\UpdateDataFailedException;
+use App\Exceptions\DeleteDataFailedException;
 use App\Exceptions\SearchDataFailedException;
 
 class MediaGalleryController extends Controller
@@ -86,14 +87,15 @@ class MediaGalleryController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy(MediaGallery $activity)
+    public function destroy(MediaGallery $media_gallery)
     {
         try {
-            $this->mediaGalleryService->delete($activity->id);
+            $this->mediaGalleryService->delete($media_gallery->id);
             $response = ['error' => false, 'message'=>'delete data success !'];
             return response()->json($response);
         } catch (\Throwable $th) {
-            throw new DeleteDataFailedException('Delete Data Failed : Undefined Error');
+            // throw new DeleteDataFailedException('Delete Data Failed : Undefined Error');
+            throw $th;
         }
         
     }
