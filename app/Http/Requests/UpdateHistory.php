@@ -3,6 +3,8 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use App\Rules\SpeedrunRule;
+use App\Models\Activity;
 
 class UpdateHistory extends FormRequest
 {
@@ -23,12 +25,18 @@ class UpdateHistory extends FormRequest
      */
     public function rules()
     {
+        $activity = Activity::find(request()->activity_id);
         return [
             'activity_id' => 'integer|exists:activities,id',
             'date' => 'date_format:Y-m-d',
             'time' => 'date_format:H:i:s',
-            'value' => 'numeric',
-            'value_textfield' => 'string',
+            // 'value' => 'numeric',
+            // 'value_textfield' => 'string',
+            'value' => [
+                'nullable',
+                'bail',
+                new SpeedrunRule($activity->type ?? null)
+            ],
         ];
     }
 }

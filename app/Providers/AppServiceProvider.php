@@ -36,6 +36,9 @@ class AppServiceProvider extends ServiceProvider
             'Activity',
             'History',
             'Setting',
+            'Category',
+            'MediaGallery',
+            'ApplicationLog',
         ];
 
         //binding repository

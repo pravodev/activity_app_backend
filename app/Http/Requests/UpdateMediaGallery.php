@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class SearchActivity extends FormRequest
+class UpdateMediaGallery extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -24,12 +24,11 @@ class SearchActivity extends FormRequest
     public function rules()
     {
         return [
-            'title' => 'string',
-            'value' => 'string',
-            'target' => 'string',
-            'can_change' => 'string',
-            // 'use_textfield' => 'string',
-            // 'created_at'=> 'string',
+            'type' => 'required|in:image,video,link',
+            'category_id' => 'nullable|in:categories,id',
+            'image' => 'nullable|file',
+            'video' => 'nullable|file',
+            'link' => 'nullable|string',
         ];
     }
 }

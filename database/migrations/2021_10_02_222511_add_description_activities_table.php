@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class AddColorOnActivitiesTable extends Migration
+class AddDescriptionActivitiesTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,8 +13,8 @@ class AddColorOnActivitiesTable extends Migration
      */
     public function up()
     {
-        Schema::table('activities', function (Blueprint $table) {
-            $table->string('color')->nullable();
+        Schema::table('activities', function(Blueprint $table){
+            $table->string('description')->nullable()->after('title');
         });
     }
 
@@ -25,8 +25,8 @@ class AddColorOnActivitiesTable extends Migration
      */
     public function down()
     {
-        Schema::table('activities', function (Blueprint $table) {
-            $table->dropColumn('color');
+        Schema::table('activities', function(Blueprint $table){
+            $table->dropColumn('description');
         });
     }
 }

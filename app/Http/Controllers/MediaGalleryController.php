@@ -3,34 +3,34 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Activity;
-use App\Http\Requests\StoreActivity;
-use App\Http\Requests\UpdateActivity;
-use App\Http\Requests\SearchActivity;
-use App\Http\Requests\ChangePositionActivity;
-use App\Services\Contracts\ActivityServiceContract as ActivityService;
+use App\Models\MediaGallery;
+use App\Http\Requests\StoreMediaGallery;
+use App\Http\Requests\UpdateMediaGallery;
+use App\Http\Requests\SearchMediaGallery;
+use App\Services\Contracts\MediaGalleryServiceContract as MediaGalleryService;
 use App\Exceptions\GetDataFailedException;
 use App\Exceptions\StoreDataFailedException;
 use App\Exceptions\UpdateDataFailedException;
+use App\Exceptions\DeleteDataFailedException;
 use App\Exceptions\SearchDataFailedException;
 
-class ActivityController extends Controller
+class MediaGalleryController extends Controller
 {
-    private $activityService;
+    private $mediaGalleryService;
     /**
      * Display a listing of the resource.
      *
      * @return \Illuminate\Http\Response
      */
 
-    public function __construct(ActivityService $activityService)
+    public function __construct(MediaGalleryService $mediaGalleryService)
     {
-        $this->activityService = $activityService;
+        $this->mediaGalleryService = $mediaGalleryService;
     }
-    public function index()
+    public function index(Request $request)
     {
         try {
-            $data = $this->activityService->get();
+            $data = $this->mediaGalleryService->search($request->all());
             $response = ['error' => false, 'data'=>$data];
             return response()->json($response);
         } catch (\Throwable $th) {
@@ -46,11 +46,11 @@ class ActivityController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(StoreActivity $request)
+    public function store(StoreMediaGallery $request)
     {
         try {
             $data = $request->validated();
-            $this->activityService->store($data);    
+            $this->mediaGalleryService->store($data);    
             $response = ['error' => false, 'message'=>'create data success !'];
             return response()->json($response);
         } catch (\Throwable $th) {
@@ -68,11 +68,11 @@ class ActivityController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(UpdateActivity $request, Activity $activity)
+    public function update(UpdateMediaGallery $request, MediaGallery $activity)
     {
         try {
             $data = $request->validated();
-            $this->activityService->update($data, $activity->id);
+            $this->mediaGalleryService->update($data, $activity->id);
             $response = ['error' => false, 'message'=>'update data success !'];
             return response()->json($response);
         } catch (\Throwable $th) {
@@ -87,49 +87,27 @@ class ActivityController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Activity $activity)
+    public function destroy(MediaGallery $media_gallery)
     {
         try {
-            $this->activityService->delete($activity->id);
+            $this->mediaGalleryService->delete($media_gallery->id);
             $response = ['error' => false, 'message'=>'delete data success !'];
             return response()->json($response);
         } catch (\Throwable $th) {
-            throw new DeleteDataFailedException('Delete Data Failed : Undefined Error');
+            // throw new DeleteDataFailedException('Delete Data Failed : Undefined Error');
+            throw $th;
         }
         
     }
 
-    public function search(SearchActivity $request) {
+    public function search(SearchMediaGallery $request) {
         try {
             $data = $request->validated();
-            $result = $this->activityService->search($data);
+            $result = $this->mediaGalleryService->search($data);
             $response = ['error' => false, 'data'=> $result];
             return response()->json($response);
         } catch (\Throwable $th) {
             throw new SearchDataFailedException('Search Data Failed : Undefined Error');
-        }
-    }
-
-    public function getUsingMonthYear($month, $year) {
-        try {
-            $result = $this->activityService->getUsingMonthYear($month, $year);
-            $response = ['error' => false, 'data' => $result];
-            return response()->json($response);
-        } catch (\Throwsable $th) {
-            // dd($th);
-            throw new GetHistoryRangeFailedException('Get History Range Failed : Undefined Error');
-        }
-    }
-
-    public function updatePosition(ChangePositionActivity $request) {
-        try {
-            $data = $request->validated();
-            $result = $this->activityService->changePosition($request->position);
-            $response = ['error' => false, 'data'=> $result];
-            return response()->json($response);
-        } catch (\Throwable $th) {
-            throw $th;
-            throw new UpdateDataFailedException('Update Data Failed : Undefined Error');
         }
     }
 }

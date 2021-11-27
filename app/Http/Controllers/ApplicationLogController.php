@@ -3,34 +3,33 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Activity;
-use App\Http\Requests\StoreActivity;
-use App\Http\Requests\UpdateActivity;
-use App\Http\Requests\SearchActivity;
-use App\Http\Requests\ChangePositionActivity;
-use App\Services\Contracts\ActivityServiceContract as ActivityService;
+use App\Models\ApplicationLog;
+use App\Http\Requests\StoreApplicationLog;
+use App\Http\Requests\UpdateApplicationLog;
+use App\Http\Requests\SearchApplicationLog;
+use App\Services\Contracts\ApplicationLogServiceContract as ApplicationLogService;
 use App\Exceptions\GetDataFailedException;
 use App\Exceptions\StoreDataFailedException;
 use App\Exceptions\UpdateDataFailedException;
 use App\Exceptions\SearchDataFailedException;
 
-class ActivityController extends Controller
+class ApplicationLogController extends Controller
 {
-    private $activityService;
+    private $applicationLogService;
     /**
      * Display a listing of the resource.
      *
      * @return \Illuminate\Http\Response
      */
 
-    public function __construct(ActivityService $activityService)
+    public function __construct(ApplicationLogService $applicationLogService)
     {
-        $this->activityService = $activityService;
+        $this->applicationLogService = $applicationLogService;
     }
-    public function index()
+    public function index(Request $request)
     {
         try {
-            $data = $this->activityService->get();
+            $data = $this->applicationLogService->get($request->all());
             $response = ['error' => false, 'data'=>$data];
             return response()->json($response);
         } catch (\Throwable $th) {
@@ -46,11 +45,11 @@ class ActivityController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(StoreActivity $request)
+    public function store(StoreApplicationLog $request)
     {
         try {
             $data = $request->validated();
-            $this->activityService->store($data);    
+            $this->applicationLogService->store($data);    
             $response = ['error' => false, 'message'=>'create data success !'];
             return response()->json($response);
         } catch (\Throwable $th) {
@@ -68,11 +67,11 @@ class ActivityController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(UpdateActivity $request, Activity $activity)
+    public function update(UpdateApplicationLog $request, ApplicationLog $application_log)
     {
         try {
             $data = $request->validated();
-            $this->activityService->update($data, $activity->id);
+            $this->applicationLogService->update($data, $application_log->id);
             $response = ['error' => false, 'message'=>'update data success !'];
             return response()->json($response);
         } catch (\Throwable $th) {
@@ -87,10 +86,10 @@ class ActivityController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Activity $activity)
+    public function destroy(ApplicationLog $application_log)
     {
         try {
-            $this->activityService->delete($activity->id);
+            $this->applicationLogService->delete($application_log->id);
             $response = ['error' => false, 'message'=>'delete data success !'];
             return response()->json($response);
         } catch (\Throwable $th) {
@@ -99,37 +98,14 @@ class ActivityController extends Controller
         
     }
 
-    public function search(SearchActivity $request) {
+    public function search(SearchApplicationLog $request) {
         try {
             $data = $request->validated();
-            $result = $this->activityService->search($data);
+            $result = $this->applicationLogService->search($data);
             $response = ['error' => false, 'data'=> $result];
             return response()->json($response);
         } catch (\Throwable $th) {
             throw new SearchDataFailedException('Search Data Failed : Undefined Error');
-        }
-    }
-
-    public function getUsingMonthYear($month, $year) {
-        try {
-            $result = $this->activityService->getUsingMonthYear($month, $year);
-            $response = ['error' => false, 'data' => $result];
-            return response()->json($response);
-        } catch (\Throwsable $th) {
-            // dd($th);
-            throw new GetHistoryRangeFailedException('Get History Range Failed : Undefined Error');
-        }
-    }
-
-    public function updatePosition(ChangePositionActivity $request) {
-        try {
-            $data = $request->validated();
-            $result = $this->activityService->changePosition($request->position);
-            $response = ['error' => false, 'data'=> $result];
-            return response()->json($response);
-        } catch (\Throwable $th) {
-            throw $th;
-            throw new UpdateDataFailedException('Update Data Failed : Undefined Error');
         }
     }
 }

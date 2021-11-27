@@ -17,9 +17,9 @@ class CreateHistoriesTable extends Migration
             $table->id();
             $table->integer('activity_id');
             $table->date('date');
-            $table->time('time');
-            $table->float('value')->nullable();
-            $table->string('value_textfield')->nullable();
+            $table->time('time')->nullable();
+            $table->string('value')->nullable();
+            // $table->string('value_textfield')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });

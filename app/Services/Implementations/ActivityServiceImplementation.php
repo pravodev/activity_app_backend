@@ -20,10 +20,37 @@ class ActivityServiceImplementation implements ActivityServiceContract {
     }
 
     public function store($input) {
+        $can_change = 0;
+        $use_textfield = 0;
+
+        if(in_array($input['type'], ['count', 'speedrun'])) {
+            $can_change = 1;
+            $use_textfield = 1;
+        } else if(in_array($input['type'], ['value', 'badhabit'])) {
+            $can_change = $input['can_change'];
+        }
+
+        $input['can_change'] = $can_change;
+        // $input['use_textfield'] = $use_textfield;
+        
         return $this->activityRepo->store($input);
     }
 
     public function update($input, $id) {
+        // $can_change = 0;
+        // $use_textfield = 0;
+
+        // if($input['type'] == 'count') {
+        //     $can_change = 1;
+        //     $use_textfield = 1;
+        // } else if($input['type'] == 'speedrun') {
+        //     $can_change = 1;
+        //     $use_textfield = 1;
+        // }
+
+        // $input['can_change'] = $can_change;
+        // $input['use_textfield'] = $use_textfield;
+
         return $this->activityRepo->update($input, $id);
     }
 

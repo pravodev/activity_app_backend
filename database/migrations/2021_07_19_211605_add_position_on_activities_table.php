@@ -14,7 +14,7 @@ class AddPositionOnActivitiesTable extends Migration
     public function up()
     {
         Schema::table('activities', function (Blueprint $table) {
-            $table->integer('position')->nullable()->after('use_textfield');
+            $table->integer('position')->nullable();
         });
     }
 

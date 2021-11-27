@@ -4,6 +4,8 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
+use App\Rules\SpeedrunRule;
+use App\Models\Activity;
 
 class StoreHistory extends FormRequest
 {
@@ -24,18 +26,19 @@ class StoreHistory extends FormRequest
      */
     public function rules()
     {
+        $activity = Activity::find(request()->activity_id);
+
         return [
             'activity_id' => 'required|integer|exists:activities,id',
             'date' => 'nullable|date_format:Y-m-d',
             'time' => 'nullable|date_format:H:i:s',
-            'value' => 'required_without:value_textfield|numeric',
-            'value_textfield' => 'string',
+            // 'value' => 'required_without:value_textfield|numeric',
+            // 'value_textfield' => 'string',
+            'value' => [
+                'nullable',
+                'bail',
+                new SpeedrunRule($activity->type ?? null)
+            ],
         ];
     }
-
-    // protected function failedValidation(Validator $validator) {
-    //     dd($validator->errors());
-    // }
-
-
 }

@@ -3,6 +3,8 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use App\Rules\SpeedrunRule;
+use Illuminate\Validation\Rule;
 
 class StoreActivity extends FormRequest
 {
@@ -24,12 +26,24 @@ class StoreActivity extends FormRequest
     public function rules()
     {
         return [
-            'title' => 'required|string',
-            'default_value' => 'required|numeric',
-            'target' => 'required|numeric',
-            'can_change' => 'required|boolean',
-            'use_textfield' => 'required|boolean',
+            'type' => 'required|in:value,count,speedrun,alarm,badhabit',
+            // 'title' => 'required|string|unique:activities',
+            'title' => [
+                'required',
+                'string',
+                Rule::unique('activities')->whereNull('deleted_at'),
+            ],
+            'description' => 'nullable|string',
+            'value' => [
+                'required_if:type,value,speedrun',
+                new SpeedrunRule(request()->type)
+            ],
+            'target' => 'required_unless:type,alarm|numeric',
+            'can_change' => 'required_if:type,value|boolean',
+            // 'use_textfield' => 'required|boolean',
             'color' => 'required|string',
+            'increase_value' => 'nullable|required_unless:count,speedrun|numeric|min:1',
+            'is_hide' => 'required|boolean',
         ];
     }
 }

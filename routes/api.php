@@ -35,9 +35,22 @@ Route::resource('activities', 'ActivityController')->except([
     'create', 'show'
 ]);
 
+Route::post('/histories/bulkDelete', 'HistoryController@bulkDelete');
 Route::resource('histories', 'HistoryController')->except([
     'create', 'show'
 ]);
 
 Route::get('/setting', 'SettingController@index');
 Route::post('/setting', 'SettingController@save');
+
+Route::resource('categories', 'CategoryController')->except([
+    'create', 'show'
+]);
+
+Route::resource('media-galleries', 'MediaGalleryController')->except([
+    'create', 'show'
+]);
+
+Route::resource('application-logs', 'ApplicationLogController')->except([
+    'create', 'show'
+]);

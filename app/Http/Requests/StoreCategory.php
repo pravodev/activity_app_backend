@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class SearchActivity extends FormRequest
+class StoreCategory extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -24,12 +24,8 @@ class SearchActivity extends FormRequest
     public function rules()
     {
         return [
-            'title' => 'string',
-            'value' => 'string',
-            'target' => 'string',
-            'can_change' => 'string',
-            // 'use_textfield' => 'string',
-            // 'created_at'=> 'string',
+            'type' => 'required|in:alarm,media',
+            'name' => 'required',
         ];
     }
 }

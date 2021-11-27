@@ -65,8 +65,8 @@ class HistoryServiceImplementation implements HistoryServiceContract {
         return $this->historyRepo->search($fields);
     }
 
-    public function getHistoryRange() {
-        $dataRange = $this->historyRepo->getHistoryRange();
+    public function getHistoryRange($params = []) {
+        $dataRange = $this->historyRepo->getHistoryRange($params);
         $result = [];
         $groupByYear = $dataRange->groupBy('year');
 

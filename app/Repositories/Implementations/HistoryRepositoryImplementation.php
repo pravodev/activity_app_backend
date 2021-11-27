@@ -32,15 +32,20 @@ class HistoryRepositoryImplementation extends BaseRepositoryImplementation imple
         return $result;
     }
 
-    public function getHistoryRange() {
+    public function getHistoryRange($params = []) {
         // $result = DB::table('histories')->get();
         // return $result;
         $result = DB::table('histories')->select(DB::raw("DATE_FORMAT(histories.date, '%m-%Y') as historyDate"),  DB::raw('YEAR(histories.date) year, MONTH(histories.date) month'))
         ->where('deleted_at', null)
         ->groupby('year','month', 'historyDate')
         ->orderBy(DB::raw("YEAR(histories.date)"), 'DESC')
-        ->orderBy(DB::raw("MONTH(histories.date)"), 'DESC')
-        ->get();
+        ->orderBy(DB::raw("MONTH(histories.date)"), 'DESC');
+
+        if(isset($params['year'])) {
+            $result = $result->where(DB::raw("YEAR(histories.date)"), $params['year']);
+        }
+
+        $result = $result->get();
         return $result;
     }
 

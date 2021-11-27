@@ -15,11 +15,12 @@ class CreateActivitiesTable extends Migration
     {
         Schema::create('activities', function (Blueprint $table) {
             $table->id();
+            $table->string('type')->default('text');
             $table->string('title');
-            $table->float('default_value');
+            $table->string('value')->nullable();
             $table->float('target');
             $table->boolean('can_change');
-            $table->boolean('use_textfield');
+            // $table->boolean('use_textfield');
             $table->softDeletes();
             $table->timestamps();
         });
