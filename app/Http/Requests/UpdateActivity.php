@@ -38,7 +38,7 @@ class UpdateActivity extends FormRequest
             //     'required_if:type,value,speedrun',
             //     new SpeedrunRule(request()->type)
             // ],
-            'target' => 'required_unless:type,alarm|numeric',
+            'target' => 'required_unless:type,alarm|numeric|min:1',
             'can_change' => 'boolean',
             // 'use_textfield' => 'boolean',
             'color' => 'string',
