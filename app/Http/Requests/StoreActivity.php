@@ -25,7 +25,7 @@ class StoreActivity extends FormRequest
      */
     public function rules()
     {
-        return [
+        $rules = [
             'type' => 'required|in:value,count,speedrun,alarm,badhabit',
             // 'title' => 'required|string|unique:activities',
             'title' => [
@@ -34,16 +34,29 @@ class StoreActivity extends FormRequest
                 Rule::unique('activities')->whereNull('deleted_at'),
             ],
             'description' => 'nullable|string',
-            'value' => [
-                'required_if:type,value,speedrun',
-                new SpeedrunRule(request()->type)
-            ],
-            'target' => 'required_unless:type,alarm|numeric',
+            // 'value' => [
+            //     'required_if:type,value,speedrun',
+            //     new SpeedrunRule(request()->type)
+            // ],
+            'target' => 'required_unless:type,alarm|numeric|min:1',
             'can_change' => 'required_if:type,value|boolean',
             // 'use_textfield' => 'required|boolean',
             'color' => 'required|string',
             'increase_value' => 'nullable|required_unless:count,speedrun|numeric|min:1',
             'is_hide' => 'required|boolean',
         ];
+
+        if(in_array(request()->type, ['value', 'speedrun', 'badhabit'])) {
+            $rules['value'] = ['required'];
+
+            if(request()->type == 'speedrun') {
+                array_push($rules['value'], new SpeedrunRule(request()->type));
+            } else {
+                array_push($rules['value'], 'min:1');
+                array_push($rules['value'], 'numeric');
+            }
+        }
+
+        return $rules;
     }
 }

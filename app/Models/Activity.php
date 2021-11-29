@@ -64,7 +64,7 @@ class Activity extends Model
 
     public static function convertTimestampToSpeedrunValue($value)
     {
-        $date = \Carbon\Carbon::createFromTimestamp($value)->format('H\h i\m s\s');
+        $date = \Carbon\Carbon::createFromTimestamp($value)->format('H\h i\m s\s v\m\s');
 
         return $date;
     }
