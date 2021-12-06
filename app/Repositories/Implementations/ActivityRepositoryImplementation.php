@@ -66,7 +66,7 @@ class ActivityRepositoryImplementation extends BaseRepositoryImplementation impl
                 $query->whereYear("date", $year)->whereMonth("date", $month);
             }])
             ->leftJoin('histories', $join_histories)
-            ->select(DB::raw('activities.id, activities.type, activities.title, activities.target, activities.value'))
+            ->select(DB::raw('activities.id, activities.type, activities.title, activities.target, activities.value, activities.criteria'))
             ->addSelect(DB::raw($get_score_query))
             ->addSelect(DB::raw('COUNT(histories.id) as count'))
             ->groupBy('histories.activity_id')
@@ -106,7 +106,7 @@ class ActivityRepositoryImplementation extends BaseRepositoryImplementation impl
                     $speedtarget = $activity->value;
                     $speedtarget_timestamp = Activity::convertSpeedrunValueToTimestamp($speedtarget);
 
-                    $is_red = $activity->cfriteria == 'shorter' ? $avg > $speedtarget_timestamp : $avg < $speedtarget_timestamp;
+                    $is_red = $activity->criteria == 'shorter' ? $avg > $speedtarget_timestamp : $avg < $speedtarget_timestamp;
                     $criteria_time = $activity->criteria == 'shorter' ? $timestamps->min('timestamp') : $timestamps->max('timestamp');
 
                     $best_time = $timestamps->filter(function($t) use($criteria_time) {
