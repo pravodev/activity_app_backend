@@ -14,7 +14,7 @@ class Activity extends Model
     protected $dates = ['deleted_at'];
 
     // protected $fillable = ['type', 'title', 'value', 'target', 'can_change', 'use_textfield', 'color'];
-    protected $fillable = ['type', 'title', 'value', 'target', 'color', 'description', 'can_change', 'increase_value', 'is_hide'];
+    protected $fillable = ['type', 'title', 'value', 'target', 'color', 'description', 'can_change', 'increase_value', 'is_hide', 'criteria'];
 
     protected $appends = [
         'speedrun_parsed',
@@ -133,17 +133,8 @@ class Activity extends Model
                 $speedtarget_timestamp = Activity::convertSpeedrunValueToTimestamp($speedtarget);
 
                 $is_red = $avg > $speedtarget_timestamp;
-                $fastest_time = $timestamps->min('timestamp');
-
-                $best_time = $timestamps->filter(function($t) use($fastest_time) {
-                    return $t['timestamp'] == $fastest_time;
-                })->first();
-                $data['best_time'] = $best_time['value'];
             } else {
-                $score = '0h 0m 0s';
                 $is_red = false;
-                $data['best_time'] = $score . ' 0ms';
-
             }
             // $left = $activity->target - $activity->count;
 
@@ -161,7 +152,7 @@ class Activity extends Model
         $options = [
             'value' => 'Number Count',
             'count' => 'Text Count',
-            'speedrun' => 'Speedrun',
+            'speedrun' => 'Stopwatch',
             'badhabit' => 'Bad Habit'
         ];
 

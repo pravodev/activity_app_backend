@@ -80,7 +80,7 @@ class SpeedrunRule implements Rule
             case 'value':
                 return 'The value must be a number';
             case 'speedrun':
-                return 'Time as speed target must be in the format: 1h 34m 33s 00ms';
+                return 'Time as target must be in the format: 1h 34m 33s 00ms';
         }
     }
 }

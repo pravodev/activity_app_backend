@@ -42,8 +42,9 @@ class UpdateActivity extends FormRequest
             'can_change' => 'boolean',
             // 'use_textfield' => 'boolean',
             'color' => 'string',
-            'increase_value' => 'nullable|required_unless:count,speedrun|numeric|min:1',
+            'increase_value' => 'nullable|required_unless:type,count,speedrun|numeric|min:1',
             'is_hide' => 'required|boolean',
+            'criteria' => 'required_if:type,speedrun|in:longer,shorter',
         ];
 
         if(in_array(request()->type, ['value', 'speedrun', 'badhabit'])) {

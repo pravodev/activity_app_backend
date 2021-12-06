@@ -106,11 +106,11 @@ class ActivityRepositoryImplementation extends BaseRepositoryImplementation impl
                     $speedtarget = $activity->value;
                     $speedtarget_timestamp = Activity::convertSpeedrunValueToTimestamp($speedtarget);
 
-                    $is_red = $avg > $speedtarget_timestamp;
-                    $fastest_time = $timestamps->min('timestamp');
+                    $is_red = $activity->cfriteria == 'shorter' ? $avg > $speedtarget_timestamp : $avg < $speedtarget_timestamp;
+                    $criteria_time = $activity->criteria == 'shorter' ? $timestamps->min('timestamp') : $timestamps->max('timestamp');
 
-                    $best_time = $timestamps->filter(function($t) use($fastest_time) {
-                        return $t['timestamp'] == $fastest_time;
+                    $best_time = $timestamps->filter(function($t) use($criteria_time) {
+                        return $t['timestamp'] == $criteria_time;
                     })->first();
                     $data['best_time'] = $this->removeSpeedrunZero($best_time['value']);
 
@@ -120,9 +120,9 @@ class ActivityRepositoryImplementation extends BaseRepositoryImplementation impl
                             'value' => $history->value
                         ];
                     });
-                    $fastest_time = $timestamps_alltime->min('timestamp');
-                    $best_record_alltime = $timestamps_alltime->filter(function($t) use($fastest_time) {
-                        return $t['timestamp'] == $fastest_time;
+                    $criteria_time = $activity->criteria == 'shorter' ? $timestamps_alltime->min('timestamp') : $timestamps_alltime->max('timestamp');
+                    $best_record_alltime = $timestamps_alltime->filter(function($t) use($criteria_time) {
+                        return $t['timestamp'] == $criteria_time;
                     })->first();
                     $data['best_record_alltime'] = $this->removeSpeedrunZero($best_record_alltime['value']);
                     $data['histories'] = $data['histories']->map(function($history) {
