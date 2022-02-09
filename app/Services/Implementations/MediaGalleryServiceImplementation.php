@@ -18,15 +18,15 @@ class MediaGalleryServiceImplementation implements MediaGalleryServiceContract {
     }
 
     public function store($input) {
-        $path = 'media-galleries/'.now()->format('Y-m');
+        $path = 'user_'.auth()->id().'/media-galleries/'.now()->format('Y-m');
         $filename = now()->format('Ymd-Hi').'-'.$input['type'];
         $fileid = uniqid(time());
-        
+
         if($input['type'] !== 'youtube') {
             $name = $filename.'-'.$fileid.'.'.$input['file']->getClientOriginalExtension();
             $input['value'] = $input['file']->storeAs($path, $name, 'public');
         }
-        
+
         switch ($input['type']) {
             case 'image':
                 $input['thumbnail'] = $input['value'];
@@ -41,7 +41,7 @@ class MediaGalleryServiceImplementation implements MediaGalleryServiceContract {
                 $input['thumbnail'] = $input['thumbnail']->storeAs($path, $name,'public');
                 break;
         }
-        
+
         return $this->mediaGalleryRepo->store($input);
     }
 
@@ -51,7 +51,7 @@ class MediaGalleryServiceImplementation implements MediaGalleryServiceContract {
 
     public function delete($id) {
         $media = $this->mediaGalleryRepo->find($id);
-        
+
         $delete = $this->mediaGalleryRepo->delete($id);
 
         if($media) {

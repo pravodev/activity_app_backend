@@ -10,7 +10,7 @@ class History extends Model
 {
     use HasFactory;
     use SoftDeletes;
-    
+
     protected $dates = ['deleted_at'];
 
     protected $fillable = ["type", "activity_id", "date", "time", "value", "value_textfield"];
@@ -29,6 +29,21 @@ class History extends Model
             if(!$model->date) {
                 $model->date = now()->format('Y-m-d');
             }
+        });
+
+        static::created(function($model) {
+            if(get_settings('point_system')) {
+                $date = \Carbon\Carbon::parse($model->date);
+                PointTransaction::calculate($model->activity_id, $date->month, $date->year);
+            }
+        });
+
+        static::saving(function($model){
+            $model->user_id = auth()->id();
+        });
+
+        static::addGlobalScope('byuser', function ($builder) {
+            $builder->where('user_id', auth()->id());
         });
     }
 }

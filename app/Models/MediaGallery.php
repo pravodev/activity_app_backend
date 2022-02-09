@@ -20,7 +20,7 @@ class MediaGallery extends Model
         'value_url',
         'thumbnail_url',
     ];
-    
+
     public function getValueUrlAttribute()
     {
         if($this->value && $this->type !== 'youtube') {
@@ -37,5 +37,16 @@ class MediaGallery extends Model
         }
 
         return $this->thumbnail;
+    }
+
+    public static function booted()
+    {
+        static::saving(function($model){
+            $model->user_id = auth()->id();
+        });
+
+        static::addGlobalScope('byuser', function ($builder) {
+            $builder->where('user_id', auth()->id());
+        });
     }
 }

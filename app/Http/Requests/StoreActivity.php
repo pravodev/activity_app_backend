@@ -58,6 +58,12 @@ class StoreActivity extends FormRequest
             }
         }
 
+        if(get_settings('point_system')) {
+            $rules['bonus_value'] = 'nullable|numeric';
+            $rules['penalty_value'] = 'nullable|numeric';
+            $rules['point_weight'] = 'required|numeric|min:1';
+        }
+        
         return $rules;
     }
 }

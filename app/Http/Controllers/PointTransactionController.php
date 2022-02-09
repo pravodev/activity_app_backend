@@ -3,38 +3,38 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\History;
-use App\Http\Requests\StoreHistory;
-use App\Http\Requests\BulkStoreHistory;
-use App\Http\Requests\UpdateHistory;
-use App\Http\Requests\SearchHistory;
-use App\Http\Requests\SearchHistoryRange;
-use App\Services\Contracts\HistoryServiceContract as HistoryService;
+use App\Models\PointTransaction;
+use App\Http\Requests\StorePointTransaction;
+use App\Http\Requests\BulkStorePointTransaction;
+use App\Http\Requests\UpdatePointTransaction;
+use App\Http\Requests\SearchPointTransaction;
+use App\Http\Requests\SearchPointTransactionRange;
+use App\Services\Contracts\PointTransactionServiceContract as PointTransactionService;
 use App\Exceptions\GetDataFailedException;
 use App\Exceptions\StoreDataFailedException;
 use App\Exceptions\UpdateDataFailedException;
 use App\Exceptions\DeleteDataFailedException;
 use App\Exceptions\SearchDataFailedException;
-use App\Exceptions\GetHistoryRangeFailedException;
+use App\Exceptions\GetPointTransactionRangeFailedException;
 
 
-class HistoryController extends Controller
+class PointTransactionController extends Controller
 {
-    private $historyService;
+    private $pointTransactionService;
     /**
      * Display a listing of the resource.
      *
      * @return \Illuminate\Http\Response
      */
 
-    public function __construct(HistoryService $historyService)
+    public function __construct(PointTransactionService $pointTransactionService)
     {
-        $this->historyService = $historyService;
+        $this->pointTransactionService = $pointTransactionService;
     }
     public function index()
     {
         try {
-            $data = $this->historyService->get();
+            $data = $this->pointTransactionService->get();
             $response = ['error' => false, 'data'=>$data];
             return response()->json($response);
         } catch (\Throwable $th) {
@@ -50,11 +50,11 @@ class HistoryController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(StoreHistory $request)
+    public function store(StorePointTransaction $request)
     {
         try {
             $data = $request->validated();
-            $this->historyService->store($data);    
+            $this->pointTransactionService->store($data);    
             $response = ['error' => false, 'message'=>'create data success !'];
             return response()->json($response);
         } catch (\Throwable $th) {
@@ -67,16 +67,16 @@ class HistoryController extends Controller
     }
 
     /**
-     * Store bulk history
+     * Store bulk pointTransaction
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function bulkStore(BulkStoreHistory $request)
+    public function bulkStore(BulkStorePointTransaction $request)
     {
         try {
             $data = $request->validated();
-            $this->historyService->storeBulk($data);    
+            $this->pointTransactionService->storeBulk($data);    
             $response = ['error' => false, 'message'=>'create data success !'];
             return response()->json($response);
         } catch (\Throwable $th) {
@@ -95,11 +95,11 @@ class HistoryController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(UpdateHistory $request, History $history)
+    public function update(UpdatePointTransaction $request, PointTransaction $pointTransaction)
     {
         try {
             $data = $request->validated();
-            $this->historyService->update($data, $history->id);
+            $this->pointTransactionService->update($data, $pointTransaction->id);
             $response = ['error' => false, 'message'=>'update data success !'];
             return response()->json($response);
         } catch (\Throwable $th) {
@@ -114,10 +114,10 @@ class HistoryController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy(History $history)
+    public function destroy(PointTransaction $pointTransaction)
     {
         try {
-            $this->historyService->delete($history->id);
+            $this->pointTransactionService->delete($pointTransaction->id);
             $response = ['error' => false, 'message'=>'delete data success !'];
             return response()->json($response);
         } catch (\Throwable $th) {
@@ -126,10 +126,10 @@ class HistoryController extends Controller
         
     }
 
-    public function search(SearchHistory $request) {
+    public function search(SearchPointTransaction $request) {
         try {
             $data = $request->validated();
-            $result = $this->historyService->search($data);
+            $result = $this->pointTransactionService->search($data);
             $response = ['error' => false, 'data'=> $result];
             return response()->json($response);
         } catch (\Throwable $th) {
@@ -138,26 +138,26 @@ class HistoryController extends Controller
         }
     }
 
-    public function getHistoryRange(SearchHistoryRange $request) {
+    public function getPointTransactionRange(SearchPointTransactionRange $request) {
         try {
-            $result = $this->historyService->getHistoryRange($request->all());
+            $result = $this->pointTransactionService->getPointTransactionRange($request->all());
             $response = ['error' => false, 'data' => $result];
             return response()->json($response);
         } catch (\Throwsable $th) {
             // dd($th);
-            throw new GetHistoryRangeFailedException('Get History Range Failed : Undefined Error');
+            throw new GetPointTransactionRangeFailedException('Get PointTransaction Range Failed : Undefined Error');
         }
     }
 
     public function bulkDelete(Request $request)
     {
         $request->validate([
-            'history' => 'required|array',
+            'pointTransaction' => 'required|array',
         ]);
 
         try {
-            foreach($request->history as $id) {
-                $this->historyService->delete($id);
+            foreach($request->pointTransaction as $id) {
+                $this->pointTransactionService->delete($id);
             }
             $response = ['error' => false, 'message'=>'delete data success !'];
             return response()->json($response);

@@ -4,6 +4,7 @@ namespace App\Services\Implementations;
 use App\Services\Contracts\ActivityServiceContract;
 use App\Repositories\Contracts\ActivityRepositoryContract as ActivityRepo;
 use App\Exceptions\StoreDataFailedException;
+use App\Models\PointTransaction;
 
 class ActivityServiceImplementation implements ActivityServiceContract {
     protected $activityRepo;

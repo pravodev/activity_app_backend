@@ -39,6 +39,7 @@ class AppServiceProvider extends ServiceProvider
             'Category',
             'MediaGallery',
             'ApplicationLog',
+            'PointTransaction',
         ];
 
         //binding repository

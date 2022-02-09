@@ -15,7 +15,7 @@ class SettingRepositoryImplementation extends BaseRepositoryImplementation imple
     }
 
     public function getFormatted() {
-        $settings = $this->builder->all();
+        $settings = $this->builder->where('user_id', auth()->id())->get();
         $result = [];
 
         foreach($settings as $setting) {
@@ -26,13 +26,14 @@ class SettingRepositoryImplementation extends BaseRepositoryImplementation imple
     }
 
     public function save($key, $value) {
-        $setting = $this->builder->where('key', $key)->first() ?: $this->builder;
+        $setting = $this->builder->where('key', $key)->where('user_id', auth()->id())->first() ?: $this->builder;
         $setting->key = $key;
         $setting->value = $value;
+        $setting->user_id = auth()->id();
         $setting->save();
 
         return $setting;
     }
 
-    
+
 }

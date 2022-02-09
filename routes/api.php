@@ -18,6 +18,8 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
 
+Route::middleware('auth:api')->group(function(){
+
 Route::post('/activities/search', 'ActivityController@search');
 
 Route::get('/activities/getUsingMonthYear/{month}/{year}', 'ActivityController@getUsingMonthYear');
@@ -54,3 +56,12 @@ Route::resource('media-galleries', 'MediaGalleryController')->except([
 Route::resource('application-logs', 'ApplicationLogController')->except([
     'create', 'show'
 ]);
+
+Route::post('/point-transactions/bulkDelete', 'PointTransactionController@bulkDelete');
+Route::resource('point-transactions', 'PointTransactionController')->except([
+    'create', 'show'
+]);
+});
+
+Route::get('/google/redirect', 'GoogleController@redirect');
+Route::post('/google/callback', 'GoogleController@callback');

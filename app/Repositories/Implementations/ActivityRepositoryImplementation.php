@@ -5,6 +5,7 @@ namespace App\Repositories\Implementations;
 use App\Repositories\Contracts\ActivityRepositoryContract;
 use App\Models\Activity;
 use App\Models\History;
+use App\Models\PointTransaction;
 use DB;
 
 class ActivityRepositoryImplementation extends BaseRepositoryImplementation implements ActivityRepositoryContract  {
@@ -15,24 +16,42 @@ class ActivityRepositoryImplementation extends BaseRepositoryImplementation impl
 
     public function allOrder($orderBy, $orderType)
     {
-        $data = $this->builder->orderBy($orderBy, $orderType)->get();
+        $month = now()->month;
+        $year = now()->year;
+        $data = $this->getUsingMonthYear($month, $year);
 
-        $data = $data->map(function($activity){
-            $array = $activity->toArray();
-            if($activity->type == 'badhabit') {
-                $score = $activity->histories()->sum('value');
+        $data->transform(function($activity){
+            unset($activity['histories']);
+            return $activity;
+        })->sortBy('id');
 
-                $array['is_red'] = $score > $activity->target;
-            };
+        if($orderBy && $orderType) {
+            $data = $data->sortBy([
+                [$orderBy, $orderType],
+                ['id', 'asc'],
+            ]);
+        }
 
-            if($activity->type == 'speedrun') {
-                $array['value'] = $this->removeSpeedrunZero($array['value']);
-            }
+        return $data->values();
+        
+        // $data = $this->builder->orderBy($orderBy, $orderType)->get();
 
-            return $array;
-        });
+        // $data = $data->map(function($activity){
+        //     $array = $activity->toArray();
+        //     if($activity->type == 'badhabit') {
+        //         $score = $activity->histories()->sum('value');
 
-        return $data;
+        //         $array['is_red'] = $score > $activity->target;
+        //     };
+
+        //     if($activity->type == 'speedrun') {
+        //         $array['value'] = $this->removeSpeedrunZero($array['value']);
+        //     }
+
+        //     return $array;
+        // });
+
+        // return $data;
     }
     
     public function search($fields) {
@@ -66,7 +85,7 @@ class ActivityRepositoryImplementation extends BaseRepositoryImplementation impl
                 $query->whereYear("date", $year)->whereMonth("date", $month);
             }])
             ->leftJoin('histories', $join_histories)
-            ->select(DB::raw('activities.id, activities.type, activities.title, activities.target, activities.value, activities.criteria'))
+            ->select(DB::raw('activities.*'))
             ->addSelect(DB::raw($get_score_query))
             ->addSelect(DB::raw('COUNT(histories.id) as count'))
             ->groupBy('histories.activity_id')
@@ -77,11 +96,20 @@ class ActivityRepositoryImplementation extends BaseRepositoryImplementation impl
             ->get()
             ;
 
-        $activities = $activities->map(function($activity){
+        $list_points = [];
+        if(get_settings('point_system')) {
+            $list_points = PointTransaction::whereYear('date', $year)
+                ->whereMonth('date', $month)
+                ->selectRaw('activity_id, COUNT(1) as total')
+                ->groupBy('activity_id')
+                ->get();
+        }
+            
+        $activities = $activities->map(function($activity) use($list_points) {
             $left = $activity->target - $activity->score;
             $is_red_count = $activity->score < $activity->target;
             
-            $data = [
+            $data = array_merge($activity->toArray(), [
                 'id' => $activity->id,
                 'type' => $activity->type,
                 'title' => $activity->title,
@@ -89,7 +117,11 @@ class ActivityRepositoryImplementation extends BaseRepositoryImplementation impl
                 'score' => $activity->score ?? 0,
                 'count' => $activity->count,
                 'histories' => $activity->histories,
-            ];
+            ]);
+            
+            if(get_settings('point_system')) {
+                $data['point'] = $list_points->where('activity_id', $activity->id)->pluck('total')->first();
+            }
             
             if($activity->type == 'speedrun') {
                 $histories = $activity->histories;
@@ -114,17 +146,6 @@ class ActivityRepositoryImplementation extends BaseRepositoryImplementation impl
                     })->first();
                     $data['best_time'] = $this->removeSpeedrunZero($best_time['value']);
 
-                    $timestamps_alltime = History::where('activity_id', $activity->id)->get()->map(function($history){
-                        return [
-                            'timestamp' => Activity::convertSpeedrunValueToTimestamp($history->value),
-                            'value' => $history->value
-                        ];
-                    });
-                    $criteria_time = $activity->criteria == 'shorter' ? $timestamps_alltime->min('timestamp') : $timestamps_alltime->max('timestamp');
-                    $best_record_alltime = $timestamps_alltime->filter(function($t) use($criteria_time) {
-                        return $t['timestamp'] == $criteria_time;
-                    })->first();
-                    $data['best_record_alltime'] = $this->removeSpeedrunZero($best_record_alltime['value']);
                     $data['histories'] = $data['histories']->map(function($history) {
                         $history['value'] = $this->removeSpeedrunZero($history['value']);
                         return $history;
@@ -135,8 +156,22 @@ class ActivityRepositoryImplementation extends BaseRepositoryImplementation impl
                     // $data['best_time'] = $score . ' 0ms';
                     $data['best_time'] = '0m';
                     $data['best_record_alltime'] = '0m';
-
                 }
+
+                $timestamps_alltime = History::where('activity_id', $activity->id)->get()->map(function($history){
+                    return [
+                        'timestamp' => Activity::convertSpeedrunValueToTimestamp($history->value),
+                        'value' => $history->value
+                    ];
+                });
+                $criteria_time = $activity->criteria == 'shorter' ? $timestamps_alltime->min('timestamp') : $timestamps_alltime->max('timestamp');
+                $best_record_alltime = $timestamps_alltime->filter(function($t) use($criteria_time) {
+                    return $t['timestamp'] == $criteria_time;
+                })->first();
+                if($best_record_alltime) {
+                    $data['best_record_alltime'] = $this->removeSpeedrunZero($best_record_alltime['value']);
+                }
+
                 // $data['title'] .= " ({$activity->value})";
                 $data['value'] = $this->removeSpeedrunZero($activity->value);
                 $data['score'] = $score;

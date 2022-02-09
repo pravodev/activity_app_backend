@@ -15,5 +15,6 @@ class SettingSeeder extends Seeder
     public function run()
     {
         Setting::firstOrCreate(['key' => 'beep_sound'], ['value' => 1]);
+        Setting::firstOrCreate(['key' => 'point_system'], ['value' => 0]);
     }
 }

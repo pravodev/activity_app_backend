@@ -14,7 +14,21 @@ class Activity extends Model
     protected $dates = ['deleted_at'];
 
     // protected $fillable = ['type', 'title', 'value', 'target', 'can_change', 'use_textfield', 'color'];
-    protected $fillable = ['type', 'title', 'value', 'target', 'color', 'description', 'can_change', 'increase_value', 'is_hide', 'criteria'];
+    protected $fillable = [
+        'type',
+        'title',
+        'value',
+        'target',
+        'color',
+        'description',
+        'can_change',
+        'increase_value',
+        'is_hide',
+        'criteria',
+        'bonus_value',
+        'penalty_value',
+        'point_weight',
+    ];
 
     protected $appends = [
         'speedrun_parsed',
@@ -28,13 +42,13 @@ class Activity extends Model
         'increase_value' => 'integer',
         'is_hide' => 'integer',
     ];
-    
+
     public function histories() {
         return $this->hasMany(History::class);
     }
 
     public function delete()
-    {   
+    {
         foreach($this->histories as $history) { $history->delete(); }
         return parent::delete();
     }
@@ -49,7 +63,7 @@ class Activity extends Model
     {
         $split = explode(' ', $value);
         $array_times = [];
-        
+
         foreach($split as $i => $value) {
             preg_match_all('!\d+!', $value, $matches);
             $number = $matches[0][0] ?? null;
@@ -68,14 +82,22 @@ class Activity extends Model
 
         return $date;
     }
-    
-    // public static function booted()
-    // {
-    //     static::creating(function($model){
-    //         $lastposition = self::get()->pluck('position')->first() ?? 0;
-    //         $model->position = $lastposition+1;
-    //     });
-    // }
+
+    public static function booted()
+    {
+        // static::creating(function($model){
+        //     $lastposition = self::get()->pluck('position')->first() ?? 0;
+        //     $model->position = $lastposition+1;
+        // });
+
+        static::saving(function($model){
+            $model->user_id = auth()->id();
+        });
+
+        static::addGlobalScope('byuser', function ($builder) {
+            $builder->where('activities.user_id', auth()->id());
+        });
+    }
 
     public function getSpeedrunParsedAttribute()
     {
@@ -90,7 +112,7 @@ class Activity extends Model
             's',
             'ms'
         ];
-        
+
         foreach($split as $i => $value) {
             preg_match_all('!\d+!', $value, $matches);
             $number = $matches[0][0] ?? null;
@@ -107,7 +129,7 @@ class Activity extends Model
         if(is_null($value)) {
             return null;
         }
-        
+
         return (int) $value;
     }
 
