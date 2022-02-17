@@ -4,6 +4,7 @@ namespace App\Repositories\Implementations;
 
 use App\Repositories\Contracts\ActivityRepositoryContract;
 use App\Models\Activity;
+use App\Models\History;
 use DB;
 
 class ActivityRepositoryImplementation extends BaseRepositoryImplementation implements ActivityRepositoryContract  {
@@ -23,6 +24,10 @@ class ActivityRepositoryImplementation extends BaseRepositoryImplementation impl
 
                 $array['is_red'] = $score > $activity->target;
             };
+
+            if($activity->type == 'speedrun') {
+                $array['value'] = $this->removeSpeedrunZero($array['value']);
+            }
 
             return $array;
         });
@@ -61,18 +66,20 @@ class ActivityRepositoryImplementation extends BaseRepositoryImplementation impl
                 $query->whereYear("date", $year)->whereMonth("date", $month);
             }])
             ->leftJoin('histories', $join_histories)
-            ->select(DB::raw('activities.id, activities.type, activities.title, activities.target, activities.value'))
+            ->select(DB::raw('activities.id, activities.type, activities.title, activities.target, activities.value, activities.criteria'))
             ->addSelect(DB::raw($get_score_query))
             ->addSelect(DB::raw('COUNT(histories.id) as count'))
             ->groupBy('histories.activity_id')
             ->groupBy(DB::raw('activities.id, activities.type, activities.title, activities.target, activities.value'))
             ->orderByDesc(DB::raw('MAX(histories.created_at)'))
+            ->whereNull('histories.deleted_at')
+            // ->where('type', 'speedrun')
             ->get()
             ;
 
         $activities = $activities->map(function($activity){
             $left = $activity->target - $activity->score;
-            $is_red_count = $activity->count < $activity->target;
+            $is_red_count = $activity->score < $activity->target;
             
             $data = [
                 'id' => $activity->id,
@@ -81,6 +88,7 @@ class ActivityRepositoryImplementation extends BaseRepositoryImplementation impl
                 'target' => $activity->target,
                 'score' => $activity->score ?? 0,
                 'count' => $activity->count,
+                'histories' => $activity->histories,
             ];
             
             if($activity->type == 'speedrun') {
@@ -94,28 +102,46 @@ class ActivityRepositoryImplementation extends BaseRepositoryImplementation impl
                     });
                     $avg = $timestamps->avg('timestamp');
                     $score = Activity::convertTimestampToSpeedrunValue($avg);
-
-
+                    $score = $this->removeSpeedrunZero($score);
                     $speedtarget = $activity->value;
                     $speedtarget_timestamp = Activity::convertSpeedrunValueToTimestamp($speedtarget);
 
-                    $is_red = $avg > $speedtarget_timestamp;
-                    $fastest_time = $timestamps->min('timestamp');
+                    $is_red = $activity->criteria == 'shorter' ? $avg > $speedtarget_timestamp : $avg < $speedtarget_timestamp;
+                    $criteria_time = $activity->criteria == 'shorter' ? $timestamps->min('timestamp') : $timestamps->max('timestamp');
 
-                    $best_time = $timestamps->filter(function($t) use($fastest_time) {
-                        return $t['timestamp'] == $fastest_time;
+                    $best_time = $timestamps->filter(function($t) use($criteria_time) {
+                        return $t['timestamp'] == $criteria_time;
                     })->first();
-                    $data['best_time'] = $best_time['value'];
+                    $data['best_time'] = $this->removeSpeedrunZero($best_time['value']);
+
+                    $timestamps_alltime = History::where('activity_id', $activity->id)->get()->map(function($history){
+                        return [
+                            'timestamp' => Activity::convertSpeedrunValueToTimestamp($history->value),
+                            'value' => $history->value
+                        ];
+                    });
+                    $criteria_time = $activity->criteria == 'shorter' ? $timestamps_alltime->min('timestamp') : $timestamps_alltime->max('timestamp');
+                    $best_record_alltime = $timestamps_alltime->filter(function($t) use($criteria_time) {
+                        return $t['timestamp'] == $criteria_time;
+                    })->first();
+                    $data['best_record_alltime'] = $this->removeSpeedrunZero($best_record_alltime['value']);
+                    $data['histories'] = $data['histories']->map(function($history) {
+                        $history['value'] = $this->removeSpeedrunZero($history['value']);
+                        return $history;
+                    });
                 } else {
                     $score = '0h 0m 0s';
                     $is_red = false;
-                    $data['best_time'] = $score . ' 0ms';
+                    // $data['best_time'] = $score . ' 0ms';
+                    $data['best_time'] = '0m';
+                    $data['best_record_alltime'] = '0m';
 
                 }
-                $data['title'] .= " ({$activity->value})";
+                // $data['title'] .= " ({$activity->value})";
+                $data['value'] = $this->removeSpeedrunZero($activity->value);
                 $data['score'] = $score;
                 $left = $activity->target - $activity->count;
-
+                $is_red_count = $activity->count < $activity->target;
             } else if($activity->type == 'badhabit') {
                 $is_red = $activity->score > $activity->target;
             } else {
@@ -125,7 +151,6 @@ class ActivityRepositoryImplementation extends BaseRepositoryImplementation impl
             $data['left'] = $left < 0 ? 0 : $left;
             $data['is_red'] = $is_red;
             $data['is_red_count'] = $is_red_count;
-            $data['histories'] = $activity->histories;
 
             return $data;
         });
@@ -153,5 +178,24 @@ class ActivityRepositoryImplementation extends BaseRepositoryImplementation impl
             }
             
         }
+    }
+
+    public function removeSpeedrunZero($timetarget)
+    {
+        $split = explode(' ', $timetarget);
+        $prev = null;
+        $text = "";
+        foreach($split as $time) {
+            preg_match_all('!\d+!', $time, $matches);
+            $number = (int) $matches[0][0] ?? null;
+            $letter = preg_replace("/[^a-zA-Z]+/", "", $time);
+
+            // if()
+            if($number > 0) {
+                $text .= "{$number}{$letter} ";
+            }
+        }
+
+        return trim($text);
     }
 }

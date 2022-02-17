@@ -33,6 +33,10 @@ class ActivityServiceImplementation implements ActivityServiceContract {
         $input['can_change'] = $can_change;
         // $input['use_textfield'] = $use_textfield;
         
+        if($input['type'] == 'speedrun') {
+            $input['criteria'] = isset($input['criteria']) ? $input['criteria'] : 'shorter';
+        }
+        
         return $this->activityRepo->store($input);
     }
 
