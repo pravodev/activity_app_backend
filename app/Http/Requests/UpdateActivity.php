@@ -25,6 +25,14 @@ class UpdateActivity extends FormRequest
     public function rules()
     {
         $id = request()->segment(3);
+
+        if(request()->without_validation) {
+            return [
+                'is_hide' => 'nullable',
+                'color' => 'nullable'
+            ];
+        }
+
         $rules = [
             'type' => 'required|in:value,count,speedrun,alarm,badhabit',
             'description' => 'nullable|string',

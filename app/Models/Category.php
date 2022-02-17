@@ -13,4 +13,15 @@ class Category extends Model
         'type',
         'name',
     ];
+
+    public static function booted()
+    {
+        static::saving(function($model){
+            $model->user_id = auth()->id();
+        });
+
+        static::addGlobalScope('byuser', function ($builder) {
+            $builder->where('user_id', auth()->id());
+        });
+    }
 }

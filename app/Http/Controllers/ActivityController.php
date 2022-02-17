@@ -37,7 +37,7 @@ class ActivityController extends Controller
             return $th;
             throw new GetDataFailedException('Get Data Failed : Undefined Error');
         }
-        
+
     }
 
     /**
@@ -50,15 +50,13 @@ class ActivityController extends Controller
     {
         try {
             $data = $request->validated();
-            $this->activityService->store($data);    
+            $this->activityService->store($data);
             $response = ['error' => false, 'message'=>'create data success !'];
             return response()->json($response);
         } catch (\Throwable $th) {
             throw $th;
             throw new StoreDataFailedException('Store Data Failed : Undefined Error');
         }
-        
-        
     }
 
     /**
@@ -78,7 +76,6 @@ class ActivityController extends Controller
         } catch (\Throwable $th) {
             throw new UpdateDataFailedException('Update Data Failed : Undefined Error');
         }
-        
     }
 
     /**
@@ -96,7 +93,6 @@ class ActivityController extends Controller
         } catch (\Throwable $th) {
             throw new DeleteDataFailedException('Delete Data Failed : Undefined Error');
         }
-        
     }
 
     public function search(SearchActivity $request) {

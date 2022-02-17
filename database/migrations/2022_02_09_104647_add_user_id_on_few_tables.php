@@ -12,6 +12,7 @@ class AddUserIdOnFewTables extends Migration
         'media_galleries',
         'point_transactions',
         'settings',
+        'categories',
     ];
 
     /**
