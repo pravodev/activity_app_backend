@@ -34,7 +34,7 @@ class ActivityRepositoryImplementation extends BaseRepositoryImplementation impl
 
         return $data;
     }
-    
+
     public function search($fields) {
         $result = \App\Models\Activity::orWhere(function($query) use ($fields) {
             foreach ($fields as $key => $value) {
@@ -55,13 +55,13 @@ class ActivityRepositoryImplementation extends BaseRepositoryImplementation impl
             WHEN activities.type IN('value', 'badhabit') THEN SUM(histories.value)
         END as score
         ";
-        
+
         $join_histories = function($join) use($month, $year) {
             $join->on('histories.activity_id', 'activities.id')
                 ->whereYear("histories.date", $year)
                 ->whereMonth("histories.date", $month);
         };
-        
+
         $activities = Activity::with(['histories' => function($query) use ($month, $year) {
                 $query->whereYear("date", $year)->whereMonth("date", $month);
             }])
@@ -80,7 +80,7 @@ class ActivityRepositoryImplementation extends BaseRepositoryImplementation impl
         $activities = $activities->map(function($activity){
             $left = $activity->target - $activity->score;
             $is_red_count = $activity->score < $activity->target;
-            
+
             $data = [
                 'id' => $activity->id,
                 'type' => $activity->type,
@@ -90,7 +90,7 @@ class ActivityRepositoryImplementation extends BaseRepositoryImplementation impl
                 'count' => $activity->count,
                 'histories' => $activity->histories,
             ];
-            
+
             if($activity->type == 'speedrun') {
                 $histories = $activity->histories;
                 if(count($histories)) {
@@ -114,17 +114,6 @@ class ActivityRepositoryImplementation extends BaseRepositoryImplementation impl
                     })->first();
                     $data['best_time'] = $this->removeSpeedrunZero($best_time['value']);
 
-                    $timestamps_alltime = History::where('activity_id', $activity->id)->get()->map(function($history){
-                        return [
-                            'timestamp' => Activity::convertSpeedrunValueToTimestamp($history->value),
-                            'value' => $history->value
-                        ];
-                    });
-                    $criteria_time = $activity->criteria == 'shorter' ? $timestamps_alltime->min('timestamp') : $timestamps_alltime->max('timestamp');
-                    $best_record_alltime = $timestamps_alltime->filter(function($t) use($criteria_time) {
-                        return $t['timestamp'] == $criteria_time;
-                    })->first();
-                    $data['best_record_alltime'] = $this->removeSpeedrunZero($best_record_alltime['value']);
                     $data['histories'] = $data['histories']->map(function($history) {
                         $history['value'] = $this->removeSpeedrunZero($history['value']);
                         return $history;
@@ -137,6 +126,21 @@ class ActivityRepositoryImplementation extends BaseRepositoryImplementation impl
                     $data['best_record_alltime'] = '0m';
 
                 }
+
+                $timestamps_alltime = History::where('activity_id', $activity->id)->get()->map(function($history){
+                    return [
+                        'timestamp' => Activity::convertSpeedrunValueToTimestamp($history->value),
+                        'value' => $history->value
+                    ];
+                });
+                $criteria_time = $activity->criteria == 'shorter' ? $timestamps_alltime->min('timestamp') : $timestamps_alltime->max('timestamp');
+                $best_record_alltime = $timestamps_alltime->filter(function($t) use($criteria_time) {
+                    return $t['timestamp'] == $criteria_time;
+                })->first();
+                if($best_record_alltime) {
+                    $data['best_record_alltime'] = $this->removeSpeedrunZero($best_record_alltime['value']);
+                }
+
                 // $data['title'] .= " ({$activity->value})";
                 $data['value'] = $this->removeSpeedrunZero($activity->value);
                 $data['score'] = $score;
@@ -176,7 +180,7 @@ class ActivityRepositoryImplementation extends BaseRepositoryImplementation impl
             } else {
                 return $activity->forceDelete();
             }
-            
+
         }
     }
 
