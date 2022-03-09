@@ -33,7 +33,7 @@ class ActivityRepositoryImplementation extends BaseRepositoryImplementation impl
         }
 
         return $data->values();
-        
+
         // $data = $this->builder->orderBy($orderBy, $orderType)->get();
 
         // $data = $data->map(function($activity){
@@ -104,17 +104,12 @@ class ActivityRepositoryImplementation extends BaseRepositoryImplementation impl
                 ->groupBy('activity_id')
                 ->get();
         }
-            
+
         $activities = $activities->map(function($activity) use($list_points) {
             $left = $activity->target - $activity->score;
             $is_red_count = $activity->score < $activity->target;
-<<<<<<< HEAD
-            
-            $data = array_merge($activity->toArray(), [
-=======
 
-            $data = [
->>>>>>> master
+            $data = array_merge($activity->toArray(), [
                 'id' => $activity->id,
                 'type' => $activity->type,
                 'title' => $activity->title,
@@ -122,17 +117,12 @@ class ActivityRepositoryImplementation extends BaseRepositoryImplementation impl
                 'score' => $activity->score ?? 0,
                 'count' => $activity->count,
                 'histories' => $activity->histories,
-<<<<<<< HEAD
             ]);
-            
+
             if(get_settings('point_system')) {
                 $data['point'] = $list_points->where('activity_id', $activity->id)->pluck('total')->first();
             }
-            
-=======
-            ];
 
->>>>>>> master
             if($activity->type == 'speedrun') {
                 $histories = $activity->histories;
                 if(count($histories)) {
@@ -182,8 +172,6 @@ class ActivityRepositoryImplementation extends BaseRepositoryImplementation impl
                     $data['best_record_alltime'] = $this->removeSpeedrunZero($best_record_alltime['value']);
                 }
 
-<<<<<<< HEAD
-=======
                 $timestamps_alltime = History::where('activity_id', $activity->id)->get()->map(function($history){
                     return [
                         'timestamp' => Activity::convertSpeedrunValueToTimestamp($history->value),
@@ -198,7 +186,6 @@ class ActivityRepositoryImplementation extends BaseRepositoryImplementation impl
                     $data['best_record_alltime'] = $this->removeSpeedrunZero($best_record_alltime['value']);
                 }
 
->>>>>>> master
                 // $data['title'] .= " ({$activity->value})";
                 $data['value'] = $this->removeSpeedrunZero($activity->value);
                 $data['score'] = $score;
