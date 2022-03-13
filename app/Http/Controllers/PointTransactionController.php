@@ -39,9 +39,10 @@ class PointTransactionController extends Controller
             return response()->json($response);
         } catch (\Throwable $th) {
             // dd($th);
+            throw $th;
             throw new GetDataFailedException('Get Data Failed : Undefined Error');
         }
-        
+
     }
 
     /**
@@ -54,7 +55,7 @@ class PointTransactionController extends Controller
     {
         try {
             $data = $request->validated();
-            $this->pointTransactionService->store($data);    
+            $this->pointTransactionService->store($data);
             $response = ['error' => false, 'message'=>'create data success !'];
             return response()->json($response);
         } catch (\Throwable $th) {
@@ -62,8 +63,8 @@ class PointTransactionController extends Controller
             throw $th;
             throw new StoreDataFailedException('Store Data Failed : Undefined Error');
         }
-        
-        
+
+
     }
 
     /**
@@ -76,7 +77,7 @@ class PointTransactionController extends Controller
     {
         try {
             $data = $request->validated();
-            $this->pointTransactionService->storeBulk($data);    
+            $this->pointTransactionService->storeBulk($data);
             $response = ['error' => false, 'message'=>'create data success !'];
             return response()->json($response);
         } catch (\Throwable $th) {
@@ -84,8 +85,8 @@ class PointTransactionController extends Controller
             return response()->json($th);
             throw new StoreDataFailedException('Store Data Failed : Undefined Error');
         }
-        
-        
+
+
     }
 
     /**
@@ -105,7 +106,7 @@ class PointTransactionController extends Controller
         } catch (\Throwable $th) {
             throw new UpdateDataFailedException('Update Data Failed : Undefined Error');
         }
-        
+
     }
 
     /**
@@ -123,7 +124,7 @@ class PointTransactionController extends Controller
         } catch (\Throwable $th) {
             throw new DeleteDataFailedException('Delete Data Failed : Undefined Error');
         }
-        
+
     }
 
     public function search(SearchPointTransaction $request) {
@@ -164,6 +165,6 @@ class PointTransactionController extends Controller
         } catch (\Throwable $th) {
             throw new DeleteDataFailedException('Delete Data Failed : Undefined Error');
         }
-        
+
     }
 }

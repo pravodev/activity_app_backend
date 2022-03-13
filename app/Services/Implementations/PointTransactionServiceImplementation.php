@@ -14,7 +14,7 @@ class PointTransactionServiceImplementation implements PointTransactionServiceCo
     }
 
     public function get() {
-        $data = $this->pointTransactionRepo->datatableWith(['activity:id,title'])->get();
+        $data = $this->pointTransactionRepo->datatableWith(['activity:id,title'])->orderBy('date', 'desc')->orderBy('time', 'desc')->get();
         $data = collect($data)->map(function ($item) {
             if($item['activity'] == null) {
                 $item = Arr::add($item, 'activity_title', "deleted activity");
@@ -39,7 +39,7 @@ class PointTransactionServiceImplementation implements PointTransactionServiceCo
         $input['pointTransaction'] = collect($input['pointTransaction'])->map(function($pointTransaction) use($activityId) {
             if(!array_key_exists("value", $pointTransaction) && !array_key_exists("value_textfield", $pointTransaction)) {
                 $pointTransaction['value'] = 50;
-            }    
+            }
             $pointTransaction["activity_id"] = $activityId;
             return $pointTransaction;
         });
@@ -70,12 +70,12 @@ class PointTransactionServiceImplementation implements PointTransactionServiceCo
         foreach($groupByYear as $year => $range) {
             $result[] = [
                 'year' => $year,
-                'range'=> $range       
+                'range'=> $range
             ];
         }
 
         return $result;
     }
 
-    
+
 }

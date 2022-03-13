@@ -19,6 +19,10 @@ class CreatePointTransactionsTable extends Migration
             $table->time('time')->nullable();
             $table->integer('activity_id');
             $table->decimal('value', 8,2);
+            $table->unsignedBigInteger('history_id')->nullable();
+            $table->bigInteger('bonus_value')->nullable();
+            $table->bigInteger('penalty_value')->nullable();
+            $table->bigInteger('point_weight')->nullable();
             $table->timestamps();
         });
     }

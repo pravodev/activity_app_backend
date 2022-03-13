@@ -61,6 +61,8 @@ Route::post('/point-transactions/bulkDelete', 'PointTransactionController@bulkDe
 Route::resource('point-transactions', 'PointTransactionController')->except([
     'create', 'show'
 ]);
+
+Route::get('/auth/profile', 'GoogleController@profile');
 });
 
 Route::get('/google/redirect', 'GoogleController@redirect');

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use DB;
 
 class PointTransaction extends Model
 {
@@ -15,6 +16,9 @@ class PointTransaction extends Model
         'value',
         'date',
         'time',
+        'bonus_value',
+        'penalty_value',
+        'point_weight',
     ];
 
     public function getValueAttribute($value)
@@ -105,16 +109,73 @@ class PointTransaction extends Model
         }
 
         if(!is_null($point)) {
-            PointTransaction::updateOrCreate(
-                [
-                    'date' => now()->month($month)->year($year)->format('Y-m-d'),
-                    'activity_id' => $activity->id,
-                ],
-                [
-                    'time' => now()->month($month)->year($year)->format('H:m:s'),
-                    'value' => $point,
-                ]
-            );
+            $model = PointTransaction::where('activity_id', $activity->id)
+                ->whereMonth('date', $month)
+                ->whereYear('date', $year)
+                ->first() ?? new PointTransaction;
+
+            $model->activity_id = $activity->id;
+            $model->date = now()->month($month)->year($year)->format('Y-m-d');
+            $model->time = now()->month($month)->year($year)->format('H:m:s');
+            $model->value = $point;
+            $model->save();
+        }
+
+        return $point;
+    }
+
+    public static function calculateBonus($activity_id, $month = null, $year = null)
+    {
+        $activity = Activity::find($activity_id);
+        $month = $month ?: now()->month;
+        $year = $year ?: now()->year;
+
+        $histories = History::where('activity_id', $activity->id)
+                    ->whereMonth('date', $month)
+                    ->whereYear('date', $year)
+                    ->doesntHave('point')
+                    ->get();
+
+        $target = $activity->target;
+        $point_weight = $activity->point_weight ?? 1;
+
+        foreach($histories as $history) {
+            $total = in_array($activity->type,  ['speedrun', 'count']) ? 1 : $history->value;
+            $point = null;
+
+            if($activity->type == 'badhabit') {
+                if($activity->bonus_value && $total < $target) {
+                    $extra_value = $target - $total;
+                    $point = ($extra_value / $activity->bonus_value) * $point_weight;
+                }
+                if($activity->penalty_value && $total > $target) {
+                    $left_value = $target - $total;
+                    $point = ($left_value / $activity->penalty_value) * $point_weight;
+                }
+            } else  {
+                if($activity->bonus_value && $total > $target) {
+                    $extra_value = $total - $target;
+                    $point = ($extra_value / $activity->bonus_value) * $point_weight;
+                }
+                if($activity->penalty_value && $total < $target) {
+                    $left_value = $total - $target;
+                    $point = ($left_value / $activity->penalty_value) * $point_weight;
+                }
+            }
+
+            if(!is_null($point)) {
+                PointTransaction::firstOrCreate(
+                    [
+                        'activity_id' => $activity->id,
+                        'history_id' => $history->id,
+                    ],
+                    [
+                        'date' => $history->date,
+                        'time' => $history->time,
+                        'value' => $point,
+                    ]
+                );
+            }
         }
     }
 
@@ -122,10 +183,16 @@ class PointTransaction extends Model
     {
         static::saving(function($model){
             $model->user_id = auth()->id();
+
+            if($activity = $model->activity) {
+                $model->bonus_value = $activity->bonus_value;
+                $model->penalty_value = $activity->penalty_value;
+                $model->point_weight = $activity->point_weight;
+            }
         });
 
-        static::addGlobalScope('byuser', function ($builder) {
-            $builder->where('user_id', auth()->id());
-        });
+        // static::addGlobalScope('byuser', function ($builder) {
+        //     $builder->where('user_id', auth()->id());
+        // });
     }
 }

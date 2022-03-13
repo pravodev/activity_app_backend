@@ -100,12 +100,12 @@ class ActivityRepositoryImplementation extends BaseRepositoryImplementation impl
         if(get_settings('point_system')) {
             $list_points = PointTransaction::whereYear('date', $year)
                 ->whereMonth('date', $month)
-                ->selectRaw('activity_id, COUNT(1) as total')
+                ->selectRaw('activity_id, SUM(value) as total')
                 ->groupBy('activity_id')
                 ->get();
         }
 
-        $activities = $activities->map(function($activity) use($list_points) {
+        $activities = $activities->map(function($activity) use($list_points, $month, $year) {
             $left = $activity->target - $activity->score;
             $is_red_count = $activity->score < $activity->target;
 
@@ -116,11 +116,13 @@ class ActivityRepositoryImplementation extends BaseRepositoryImplementation impl
                 'target' => $activity->target,
                 'score' => $activity->score ?? 0,
                 'count' => $activity->count,
+                'point' => null,
                 'histories' => $activity->histories,
             ]);
 
             if(get_settings('point_system')) {
-                $data['point'] = $list_points->where('activity_id', $activity->id)->pluck('total')->first();
+                $point = $list_points->where('activity_id', $activity->id)->pluck('total')->first();
+                $data['point'] = is_null($point) ? PointTransaction::calculate($activity->id, $month, $year)  : $point;
             }
 
             if($activity->type == 'speedrun') {

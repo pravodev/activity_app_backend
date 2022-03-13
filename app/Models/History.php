@@ -19,6 +19,11 @@ class History extends Model
         return $this->belongsTo(Activity::class);
     }
 
+    public function point()
+    {
+        return $this->hasOne(PointTransaction::class);
+    }
+
     protected static function booted()
     {
         static::creating(function($model) {
@@ -43,7 +48,9 @@ class History extends Model
         });
 
         static::addGlobalScope('byuser', function ($builder) {
-            $builder->where('user_id', auth()->id());
+            if(auth()->id()) {
+                $builder->where('user_id', auth()->id());
+            }
         });
     }
 }

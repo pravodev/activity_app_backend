@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Socialite;
 use App\Models\User;
+use App\Models\PointTransaction;
 
 class GoogleController extends Controller
 {
@@ -38,5 +39,16 @@ class GoogleController extends Controller
             'token' => $token,
             'data' => $user
         ]);
+    }
+
+    public function profile()
+    {
+        $data = auth()->user()->toArray();
+        $data['total_points'] = PointTransaction::whereMonth('date', now()->month)->whereYear('date', now()->year)->sum('value');
+
+        return [
+            'error' => false,
+            'data' => $data,
+        ];
     }
 }

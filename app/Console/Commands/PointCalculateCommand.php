@@ -43,12 +43,22 @@ class PointCalculateCommand extends Command
             $this->error('point system not enabled');
             return 0;
         }
-        
+
+        // $activities = Activity::has('histories')->get();
+
+        // foreach($activities as $activity) {
+        //     PointTransaction::calculate($activity->id);
+        // }
+
+        $dates = History::selectRaw('MONTH(date) date, YEAR(date) year')->groupBy(\DB::raw('MONTH(date), YEAR(date)'))->get();
         $activities = Activity::has('histories')->get();
 
-        foreach($activities as $activity) {
-            PointTransaction::calculate($activity->id);
+        foreach($dates as $date) {
+            foreach($activities as $activity) {
+                PointTransaction::calculate($activity->id, $date->date, $date->year);
+            }
         }
+
         return 0;
     }
 }
