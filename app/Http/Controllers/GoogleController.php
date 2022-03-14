@@ -40,15 +40,4 @@ class GoogleController extends Controller
             'data' => $user
         ]);
     }
-
-    public function profile()
-    {
-        $data = auth()->user()->toArray();
-        $data['total_points'] = PointTransaction::whereMonth('date', now()->month)->whereYear('date', now()->year)->sum('value');
-
-        return [
-            'error' => false,
-            'data' => $data,
-        ];
-    }
 }

@@ -62,7 +62,9 @@ Route::resource('point-transactions', 'PointTransactionController')->except([
     'create', 'show'
 ]);
 
-Route::get('/auth/profile', 'GoogleController@profile');
+Route::get('/auth/profile', 'AuthController@getProfile');
+Route::patch('/auth/profile', 'AuthController@updateProfile');
+Route::patch('/auth/updateParentEmail', 'AuthController@updateParentEmail');
 });
 
 Route::get('/google/redirect', 'GoogleController@redirect');

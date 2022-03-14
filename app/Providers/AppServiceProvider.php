@@ -29,7 +29,7 @@ class AppServiceProvider extends ServiceProvider
 
         DB::listen(function ($query) {
             error_log($query->sql);
-            
+
         });
 
         $models = [
@@ -40,6 +40,7 @@ class AppServiceProvider extends ServiceProvider
             'MediaGallery',
             'ApplicationLog',
             'PointTransaction',
+            'User',
         ];
 
         //binding repository
@@ -53,7 +54,7 @@ class AppServiceProvider extends ServiceProvider
             } else {
                 $this->app->singleton("App\Repositories\Contracts\\{$value}RepositoryContract", "App\Repositories\Implementations\\{$value}RepositoryImplementation");
             }
-            
+
         }
 
         //binding services
@@ -67,7 +68,7 @@ class AppServiceProvider extends ServiceProvider
             } else {
                 $this->app->singleton("App\Services\Contracts\\{$value}ServiceContract", "App\Services\Implementations\\{$value}ServiceImplementation");
             }
-            
+
         }
     }
 }
