@@ -37,7 +37,7 @@ class MediaGalleryController extends Controller
             return $th;
             throw new GetDataFailedException('Get Data Failed : Undefined Error');
         }
-        
+
     }
 
     /**
@@ -50,15 +50,15 @@ class MediaGalleryController extends Controller
     {
         try {
             $data = $request->validated();
-            $this->mediaGalleryService->store($data);    
+            $this->mediaGalleryService->store($data);
             $response = ['error' => false, 'message'=>'create data success !'];
             return response()->json($response);
         } catch (\Throwable $th) {
             throw $th;
             throw new StoreDataFailedException('Store Data Failed : Undefined Error');
         }
-        
-        
+
+
     }
 
     /**
@@ -78,7 +78,7 @@ class MediaGalleryController extends Controller
         } catch (\Throwable $th) {
             throw new UpdateDataFailedException('Update Data Failed : Undefined Error');
         }
-        
+
     }
 
     /**
@@ -97,7 +97,7 @@ class MediaGalleryController extends Controller
             // throw new DeleteDataFailedException('Delete Data Failed : Undefined Error');
             throw $th;
         }
-        
+
     }
 
     public function search(SearchMediaGallery $request) {

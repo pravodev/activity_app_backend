@@ -23,7 +23,7 @@ class MediaGalleryServiceImplementation implements MediaGalleryServiceContract {
         $fileid = uniqid(time());
 
         if($input['type'] !== 'youtube') {
-            $name = $filename.'-'.$fileid.'.'.$input['file']->getClientOriginalExtension();
+            $name = $filename.'-'.$fileid.'.'.$input['file']->guessExtension();
             $input['value'] = $input['file']->storeAs($path, $name, 'public');
         }
 
@@ -37,7 +37,7 @@ class MediaGalleryServiceImplementation implements MediaGalleryServiceContract {
                 $input['thumbnail'] = "https://img.youtube.com/vi/{$youtube_id}/hqdefault.jpg";
                 break;
             case 'video':
-                $name = $filename.'-'.$fileid.'-thumb.'.($input['thumbnail']->getClientOriginalExtension() ?: 'jpg');
+                $name = $filename.'-'.$fileid.'-thumb.'.($input['thumbnail']->guessExtension() ?: 'jpg');
                 $input['thumbnail'] = $input['thumbnail']->storeAs($path, $name,'public');
                 break;
         }
