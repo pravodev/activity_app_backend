@@ -17,7 +17,7 @@ class UserRepositoryImplementation extends BaseRepositoryImplementation implemen
 
     public function getProfile()
     {
-        $data = auth()->user()->toArray();
+        $data = User::with('parent')->find(auth()->id())->toArray();
         $data['total_points'] = PointTransaction::whereMonth('date', now()->month)->whereYear('date', now()->year)->sum('value');
 
         return $data;
