@@ -37,14 +37,17 @@ class History extends Model
         });
 
         static::created(function($model) {
-            if(get_settings('point_system')) {
+            $user_id = request()->student_id ?: auth()->id();
+            if(get_settings('point_system', $user_id)) {
                 $date = \Carbon\Carbon::parse($model->date);
-                PointTransaction::calculate($model->activity_id, $date->month, $date->year);
+                PointTransaction::calculate($model->activity_id, $date->month, $date->year, $user_id);
             }
         });
 
         static::saving(function($model){
-            $model->user_id = auth()->id();
+            if(!$model->user_id) {
+                $model->user_id = auth()->id();
+            }
         });
 
         static::addGlobalScope('byuser', function ($builder) {

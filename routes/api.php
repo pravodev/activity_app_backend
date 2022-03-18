@@ -32,6 +32,8 @@ Route::middleware('auth:api')->group(function(){
 
     Route::post('/histories/bulkStore', 'HistoryController@bulkStore');
 
+    Route::post('/activities/importActivitiesForStudents', 'ActivityController@import');
+
 
     Route::resource('activities', 'ActivityController')->except([
         'create', 'show'
@@ -65,6 +67,8 @@ Route::middleware('auth:api')->group(function(){
     Route::get('/auth/profile', 'AuthController@getProfile');
     Route::patch('/auth/profile', 'AuthController@updateProfile');
     Route::patch('/auth/updateParentEmail', 'AuthController@updateParentEmail');
+    Route::get('/auth/getAllStudents', 'AuthController@getAllStudents');
+    Route::get('/auth/getDetailStudent/{id}', 'AuthController@getDetailStudent');
 });
 
 Route::get('/google/redirect', 'GoogleController@redirect');

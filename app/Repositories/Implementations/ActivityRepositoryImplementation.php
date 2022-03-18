@@ -7,6 +7,7 @@ use App\Models\Activity;
 use App\Models\History;
 use App\Models\PointTransaction;
 use DB;
+use App\Models\User;
 
 class ActivityRepositoryImplementation extends BaseRepositoryImplementation implements ActivityRepositoryContract  {
     public function __construct(Activity $builder)
@@ -91,21 +92,27 @@ class ActivityRepositoryImplementation extends BaseRepositoryImplementation impl
             ->groupBy('histories.activity_id')
             ->groupBy(DB::raw('activities.id, activities.type, activities.title, activities.target, activities.value'))
             ->orderByDesc(DB::raw('MAX(histories.created_at)'))
-            ->whereNull('histories.deleted_at')
+            ->whereNull('histories.deleted_at');
+
+        if($student_id = request()->query('student_id')) {
+            $activities = $activities->withoutGlobalScope('byuser')->where('activities.user_id', $student_id);
+        }
             // ->where('type', 'speedrun')
-            ->get()
-            ;
+        $activities = $activities->get();
+        $user_id = request()->query('student_id') ?: auth()->id();
 
         $list_points = [];
-        if(get_settings('point_system')) {
+        if(get_settings('point_system', $user_id)) {
             $list_points = PointTransaction::whereYear('date', $year)
                 ->whereMonth('date', $month)
                 ->selectRaw('activity_id, SUM(value) as total')
                 ->groupBy('activity_id')
+                ->withoutGlobalScope('byuser')
+                ->where('user_id', $user_id)
                 ->get();
         }
 
-        $activities = $activities->map(function($activity) use($list_points, $month, $year) {
+        $activities = $activities->map(function($activity) use($list_points, $month, $year, $user_id) {
             $left = $activity->target - $activity->score;
             $is_red_count = $activity->score < $activity->target;
 
@@ -120,9 +127,9 @@ class ActivityRepositoryImplementation extends BaseRepositoryImplementation impl
                 'histories' => $activity->histories,
             ]);
 
-            if(get_settings('point_system')) {
+            if(get_settings('point_system', $user_id)) {
                 $point = $list_points->where('activity_id', $activity->id)->pluck('total')->first();
-                $data['point'] = is_null($point) ? PointTransaction::calculate($activity->id, $month, $year)  : $point;
+                $data['point'] = is_null($point) ? PointTransaction::calculate($activity->id, $month, $year, $user_id)  : $point;
             }
 
             if($activity->type == 'speedrun') {
@@ -248,5 +255,24 @@ class ActivityRepositoryImplementation extends BaseRepositoryImplementation impl
         }
 
         return trim($text);
+    }
+
+    public function import($parent_id)
+    {
+        $activities = $this->builder->where('user_id', $parent_id)->get();
+
+        $student_ids = User::select('id')->where('parent_id', $parent_id)->pluck('id');
+
+        foreach($activities as $activity) {
+            foreach($student_ids as $student_id) {
+                $duplicated = $activity->replicate();
+                $duplicated->user_id = $student_id;
+                $duplicated->created_at = now();
+                $duplicated->updated_at = now();
+                $duplicated->save();
+            }
+        }
+
+        return $activities->count();
     }
 }

@@ -36,15 +36,18 @@ class PointTransaction extends Model
         return $this->belongsTo(History::class);
     }
 
-    public static function calculate($activity_id, $month = null, $year = null)
+    public static function calculate($activity_id, $month = null, $year = null, $user_id = null)
     {
-        $activity = Activity::find($activity_id);
+        $user_id = $user_id ?: auth()->id();
+
+        $activity = Activity::withoutGlobalScope('byuser')->find($activity_id);
         $month = $month ?: now()->month;
         $year = $year ?: now()->year;
 
         $history = History::where('activity_id', $activity->id)
                     ->whereMonth('date', $month)
                     ->whereYear('date', $year)
+                    ->withoutGlobalScope('byuser')
                     ->get();
 
         if(in_array($activity->type, ['speedrun', 'count'])) {
@@ -115,6 +118,7 @@ class PointTransaction extends Model
                 ->first() ?? new PointTransaction;
 
             $model->activity_id = $activity->id;
+            $model->user_id = $user_id;
             $model->date = now()->month($month)->year($year)->format('Y-m-d');
             $model->time = now()->month($month)->year($year)->format('H:m:s');
             $model->value = $point;
@@ -182,7 +186,9 @@ class PointTransaction extends Model
     public static function booted()
     {
         static::saving(function($model){
-            $model->user_id = auth()->id();
+            if(!$model->user_id) {
+                $model->user_id = auth()->id();
+            }
 
             if($activity = $model->activity) {
                 $model->bonus_value = $activity->bonus_value;
@@ -191,8 +197,8 @@ class PointTransaction extends Model
             }
         });
 
-        // static::addGlobalScope('byuser', function ($builder) {
-        //     $builder->where('user_id', auth()->id());
-        // });
+        static::addGlobalScope('byuser', function ($builder) {
+            $builder->where('user_id', auth()->id());
+        });
     }
 }

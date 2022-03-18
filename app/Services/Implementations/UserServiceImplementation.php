@@ -16,4 +16,8 @@ class UserServiceImplementation implements UserServiceContract {
     public function getProfile() {
         return $this->userRepo->getProfile();
     }
+
+    public function getStudents($parent_id) {
+        return $this->userRepo->getStudents($parent_id);
+    }
 }

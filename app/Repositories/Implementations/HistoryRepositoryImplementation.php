@@ -27,8 +27,9 @@ class HistoryRepositoryImplementation extends BaseRepositoryImplementation imple
                 }
             })
             ->select("histories.*", "activities.id as activity_id", "activities.title as activity_title")
+            ->where('user_id', auth()->id())
             ->get();
-          
+
         return $result;
     }
 
@@ -45,15 +46,21 @@ class HistoryRepositoryImplementation extends BaseRepositoryImplementation imple
             $result = $result->where(DB::raw("YEAR(histories.date)"), $params['year']);
         }
 
+        if(isset($params['student_id'])) {
+            $result = $result->where('user_id', $params['student_id']);
+        } else {
+            $resulst = $result->where('user_id', auth()->id());
+        }
+
         $result = $result->get();
         return $result;
     }
 
     public function storeBulk($histories) {
-        
+
         $newData = $this->builder->insert($histories);
         return $newData;
     }
 
-    
+
 }

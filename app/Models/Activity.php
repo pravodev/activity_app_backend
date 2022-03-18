@@ -44,7 +44,7 @@ class Activity extends Model
     ];
 
     public function histories() {
-        return $this->hasMany(History::class);
+        return $this->hasMany(History::class)->withoutGlobalScope('byuser');
     }
 
     public function delete()
@@ -91,7 +91,15 @@ class Activity extends Model
         // });
 
         static::saving(function($model){
-            $model->user_id = auth()->id();
+            if(!$model->user_id) {
+                $model->user_id = auth()->id();
+            }
+
+            // check same name
+            $check = Activity::where('user_id', $model->user_id)->where('title', $model->title)->exists();
+            if($check)  {
+                $model->title = $model->title .' 1';
+            }
         });
 
         static::addGlobalScope('byuser', function ($builder) {

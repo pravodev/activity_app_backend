@@ -128,4 +128,17 @@ class ActivityController extends Controller
             throw new UpdateDataFailedException('Update Data Failed : Undefined Error');
         }
     }
+
+    public function import()
+    {
+        $parentId = auth()->id();
+        $result = $this->activityService->import($parentId);
+
+        $response = [
+            'error' => false,
+            'message' => $result . ' activities imported'
+        ];
+
+        return response()->json($response);
+    }
 }

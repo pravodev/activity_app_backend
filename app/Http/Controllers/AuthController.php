@@ -50,4 +50,25 @@ class AuthController extends Controller
             'data' => $user,
         ]);
     }
+
+    public function getAllStudents()
+    {
+        $parent_id = auth()->id();
+
+        $data = $this->userService->getStudents($parent_id);
+        $response = ['error' => false, 'data'=> $data];
+
+        return response()->json($response);
+    }
+
+    public function getDetailStudent($id)
+    {
+        $data = \App\Models\User::whereNotNull('parent_id')->where('id', $id)->firstOrFail()->toArray();
+        $data['settings'] = get_settings('', $id);
+
+        return [
+            'error' => false,
+            'data' => $data
+        ];
+    }
 }

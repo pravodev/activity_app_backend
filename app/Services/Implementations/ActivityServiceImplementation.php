@@ -33,11 +33,11 @@ class ActivityServiceImplementation implements ActivityServiceContract {
 
         $input['can_change'] = $can_change;
         // $input['use_textfield'] = $use_textfield;
-        
+
         if($input['type'] == 'speedrun') {
             $input['criteria'] = isset($input['criteria']) ? $input['criteria'] : 'shorter';
         }
-        
+
         return $this->activityRepo->store($input);
     }
 
@@ -73,5 +73,10 @@ class ActivityServiceImplementation implements ActivityServiceContract {
 
     public function changePosition($new_position) {
         return $this->activityRepo->changePosition($new_position);
+    }
+
+    public function import($parent_id)
+    {
+        return $this->activityRepo->import($parent_id);
     }
 }
