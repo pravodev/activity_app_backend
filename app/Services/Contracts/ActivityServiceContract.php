@@ -15,6 +15,8 @@ interface ActivityServiceContract {
 
     public function getUsingMonthYear($month, $year);
 
+    public function getDailyUsingMonthYear($date);
+
     public function changePosition($new_position);
-    
+
 }

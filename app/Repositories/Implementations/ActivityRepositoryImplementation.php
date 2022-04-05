@@ -65,10 +65,6 @@ class ActivityRepositoryImplementation extends BaseRepositoryImplementation impl
     }
 
     public function getUsingMonthYear($month, $year) {
-        // return Activity::with(['histories' => function($query) use ($month, $year) {
-        //     $query->whereYear("date", $year)->whereMonth("date", $month);
-        // }])->get();
-
         $get_score_query = "
         CASE
             WHEN activities.type IN('count') THEN COUNT(histories.id)
@@ -274,5 +270,63 @@ class ActivityRepositoryImplementation extends BaseRepositoryImplementation impl
         }
 
         return $activities->count();
+    }
+
+    public function getDailyUsingMonthYear($date)
+    {
+        $get_score_query = "
+        CASE
+        WHEN activities.type IN('value', 'badhabit') THEN SUM(histories.value)
+        ELSE COUNT(histories.id)
+        END as score
+        ";
+
+        $join_histories = function($join) use($date) {
+            $join->on('histories.activity_id', 'activities.id')->whereDate('date', $date);
+        };
+
+        $activities = Activity::with(['histories' => function($query) use ($date) {
+                $query->whereDate('date', $date);
+            }])
+            ->whereHas('histories', function($query) use ($date) {
+                $query->whereDate('date', $date);
+            })
+            ->leftJoin('histories', $join_histories)
+            ->select(DB::raw('activities.*'))
+            ->addSelect(DB::raw($get_score_query))
+            ->addSelect(DB::raw('COUNT(histories.id) as count'))
+            ->groupBy('histories.activity_id')
+            ->groupBy(DB::raw('activities.id, activities.type, activities.title, activities.target, activities.value'))
+            ->orderByDesc(DB::raw('MAX(histories.created_at)'))
+            ->whereNull('histories.deleted_at');
+
+        if($student_id = request()->query('student_id')) {
+            $activities = $activities->withoutGlobalScope('byuser')->where('activities.user_id', $student_id);
+        }
+
+        $activities = $activities->get();
+        $user_id = request()->query('student_id') ?: auth()->id();
+
+        $activities = $activities->map(function($activity) {
+            $histories = $activity->histories;
+
+            $data = [
+                'id' => $activity->id,
+                'type' => $activity->type,
+                'title' => $activity->title,
+                'score' => $activity->score,
+                'value' => $activity->value,
+                'percent' => (int) $activity->score / (int) $activity->target * 100,
+                'stopwatch_value' => [],
+            ];
+
+            if($activity->type == 'speedrun') {
+                $data['stopwatch_value'] = $histories->pluck('value');
+            }
+
+            return $data;
+        });
+
+        return $activities;
     }
 }
