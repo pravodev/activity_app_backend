@@ -95,10 +95,12 @@ class Activity extends Model
                 $model->user_id = auth()->id();
             }
 
-            // check same name
-            $check = Activity::where('user_id', $model->user_id)->where('title', $model->title)->exists();
-            if($check)  {
-                $model->title = $model->title .' 1';
+            if($model->isDirty('title')) {
+                // check same name
+                $check = Activity::where('id', '!=', $model->id)->where('user_id', $model->user_id)->where('title', $model->title)->exists();
+                if($check)  {
+                    $model->title = $model->title .' 1';
+                }
             }
         });
 

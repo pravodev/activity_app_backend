@@ -22,6 +22,12 @@ class ActivityRepositoryImplementation extends BaseRepositoryImplementation impl
         $data = $this->getUsingMonthYear($month, $year);
 
         $data->transform(function($activity){
+            $activity['score_target'] = $activity['score'] . " / " . $activity['target'];
+
+            if($activity['type'] == 'speedrun') {
+                $activity['score_target'] = $activity['score'] . " / " . $activity['count'];
+            }
+
             unset($activity['histories']);
             return $activity;
         })->sortBy('id');
@@ -213,9 +219,9 @@ class ActivityRepositoryImplementation extends BaseRepositoryImplementation impl
     }
 
     public function changePosition($new_position) {
-        foreach($new_position as $position => $id) {
-            $activity = Activity::find($id);
-            $activity->position = $position;
+        foreach($new_position as $data) {
+            $activity = Activity::find($data['activity_id']);
+            $activity->position = $data['position'];
             $activity->save();
         }
     }
