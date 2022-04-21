@@ -81,7 +81,8 @@ class ActivityRepositoryImplementation extends BaseRepositoryImplementation impl
         $join_histories = function($join) use($month, $year) {
             $join->on('histories.activity_id', 'activities.id')
                 ->whereYear("histories.date", $year)
-                ->whereMonth("histories.date", $month);
+                ->whereMonth("histories.date", $month)
+                ->whereNull('histories.deleted_at');
         };
 
         $activities = Activity::with(['histories' => function($query) use ($month, $year) {
@@ -93,8 +94,7 @@ class ActivityRepositoryImplementation extends BaseRepositoryImplementation impl
             ->addSelect(DB::raw('COUNT(histories.id) as count'))
             ->groupBy('histories.activity_id')
             ->groupBy(DB::raw('activities.id, activities.type, activities.title, activities.target, activities.value'))
-            ->orderByDesc(DB::raw('MAX(histories.created_at)'))
-            ->whereNull('histories.deleted_at');
+            ->orderByDesc(DB::raw('MAX(histories.created_at)'));
 
         if($student_id = request()->query('student_id')) {
             $activities = $activities->withoutGlobalScope('byuser')->where('activities.user_id', $student_id);
@@ -127,6 +127,7 @@ class ActivityRepositoryImplementation extends BaseRepositoryImplementation impl
                 'count' => $activity->count,
                 'point' => null,
                 'histories' => $activity->histories,
+                'position' => rtrim(floatval($activity->position), 0),
             ]);
 
             if(get_settings('point_system', $user_id)) {

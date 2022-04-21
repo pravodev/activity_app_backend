@@ -24,6 +24,7 @@ class Activity extends Model
         'can_change',
         'increase_value',
         'is_hide',
+        'is_ms_enable',
         'criteria',
         'bonus_value',
         'penalty_value',
