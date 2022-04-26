@@ -23,6 +23,7 @@ Route::middleware('auth:api')->group(function(){
     Route::post('/activities/search', 'ActivityController@search');
 
     Route::get('/activities/getUsingMonthYear/{month}/{year}', 'ActivityController@getUsingMonthYear');
+    Route::get('/activities/getDailyUsingMonthYear', 'ActivityController@getDailyUsingMonthYear');
 
     Route::patch('/activities/updatePosition', 'ActivityController@updatePosition');
 

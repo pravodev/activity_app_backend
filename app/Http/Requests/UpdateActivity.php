@@ -60,6 +60,7 @@ class UpdateActivity extends FormRequest
 
             if(request()->type == 'speedrun') {
                 array_push($rules['value'], new SpeedrunRule(request()->type));
+                $rules['is_ms_enable'] = 'required';
             } else {
                 array_push($rules['value'], 'min:1');
                 array_push($rules['value'], 'numeric');
