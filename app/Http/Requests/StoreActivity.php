@@ -52,6 +52,7 @@ class StoreActivity extends FormRequest
 
             if(request()->type == 'speedrun') {
                 array_push($rules['value'], new SpeedrunRule(request()->type));
+                $rules['is_ms_enable'] = 'required|boolean';
             } else {
                 array_push($rules['value'], 'min:1');
                 array_push($rules['value'], 'numeric');
@@ -63,7 +64,7 @@ class StoreActivity extends FormRequest
             $rules['penalty_value'] = 'nullable|numeric';
             $rules['point_weight'] = 'required|numeric|min:1';
         }
-        
+
         return $rules;
     }
 }

@@ -117,6 +117,23 @@ class ActivityController extends Controller
         }
     }
 
+    public function getDailyUsingMonthYear(Request $request) {
+        try {
+            $current = now();
+            $year = $request->query('year', $current->month);
+            $date = $request->query('date', $current->day);
+            $month = $request->query('month', $current->month);
+
+            $date = "{$year}-{$month}-{$date}";
+            $result = $this->activityService->getDailyUsingMonthYear($date);
+            $response = ['error' => false, 'data' => $result];
+            return response()->json($response);
+        } catch (\Throwsable $th) {
+            // dd($th);
+            throw new GetHistoryRangeFailedException('Get History Range Failed : Undefined Error');
+        }
+    }
+
     public function updatePosition(ChangePositionActivity $request) {
         try {
             $data = $request->validated();

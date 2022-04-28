@@ -14,15 +14,17 @@ class HistoryServiceImplementation implements HistoryServiceContract {
     }
 
     public function get() {
-        $data = $this->historyRepo->datatableWith(['activity:id,title,can_change'])
+        $data = $this->historyRepo->datatableWith(['activity:id,title,can_change,type'])
             ->orderBy('id', 'desc')->get();
         $data = collect($data)->map(function ($item) {
             if($item['activity'] == null) {
                 $item = Arr::add($item, 'activity_title', "deleted activity");
                 $item = Arr::add($item, 'activity_can_change', 0);
+                $item = Arr::add($item, 'activity_type', 'value');
             } else {
                 $item = Arr::add($item, 'activity_title', $item['activity']['title']);
                 $item = Arr::add($item, 'activity_can_change', $item['activity']['can_change']);
+                $item = Arr::add($item, 'activity_type', $item['activity']['type']);
             }
             return Arr::except($item, ['activity']);
         });
@@ -42,7 +44,7 @@ class HistoryServiceImplementation implements HistoryServiceContract {
         $input['history'] = collect($input['history'])->map(function($history) use($activityId) {
             if(!array_key_exists("value", $history) && !array_key_exists("value_textfield", $history)) {
                 $history['value'] = 50;
-            }    
+            }
             $history["activity_id"] = $activityId;
             return $history;
         });
@@ -73,12 +75,12 @@ class HistoryServiceImplementation implements HistoryServiceContract {
         foreach($groupByYear as $year => $range) {
             $result[] = [
                 'year' => $year,
-                'range'=> $range       
+                'range'=> $range
             ];
         }
 
         return $result;
     }
 
-    
+
 }

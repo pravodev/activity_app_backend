@@ -79,4 +79,8 @@ class ActivityServiceImplementation implements ActivityServiceContract {
     {
         return $this->activityRepo->import($parent_id);
     }
+
+    public function getDailyUsingMonthYear($date) {
+        return $this->activityRepo->getDailyUsingMonthYear($date);
+    }
 }
