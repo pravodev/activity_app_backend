@@ -53,57 +53,68 @@ class PointFocusCalculateCommand extends Command
         }
 
         $list_users = $list_users->get();
+        $list_history = History::all();
 
         foreach($list_users as $user) {
-            $historiesGroupByActivity = History::select('date', 'activity_id')->where('user_id', $user->id)->groupBy('date', 'activity_id')->orderBy(\DB::raw('DATE(`date`)'))->get()->groupBy('activity_id');
+            $groupbyactivity = $list_history->where('user_id', $user->id)->groupBy('activity_id');
 
-            foreach ($historiesGroupByActivity as $activity_id => $histories) {
-                $pointFocus = null;
-                $prevDate = null;
-
+            foreach($groupbyactivity as $activity_id => $histories) {
                 foreach($histories as $history) {
-                    if(!$pointFocus && !$prevDate) {
-                        $pointFocus = PointFocus::updateOrCreate(
-                            [
-                                'activity_id' => $activity_id,
-                                'start_date' => $history->date,
-                            ],
-                            [
-                                'repeated_days_count' => 1,
-                                'point' => 0,
-                                'user_id' => $user->id,
-                            ]
-                        );
-
-                        $prevDate = Carbon::parse($history->date);
-
-                        continue;
-                    }
-
-                    if(Carbon::parse($history->date)->diffInDays($prevDate) == 1) {
-                        $pointFocus->repeated_days_count += 1;
-                        $pointFocus->end_date = $history->date;
-                        $pointFocus->point = $pointFocus->repeated_days_count == 1 ? 1 : pow(2, $pointFocus->repeated_days_count);
-                        $pointFocus->save();
-                    } else {
-                        // create new point focus row
-                        $pointFocus = PointFocus::updateOrCreate(
-                            [
-                                'activity_id' => $activity_id,
-                                'start_date' => $history->date,
-                            ],
-                            [
-                                'repeated_days_count' => 1,
-                                'point' => 0,
-                                'user_id' => $user->id,
-                            ]
-                        );
-
-                    }
-                    $prevDate = Carbon::parse($history->date);
+                    PointFocus::calculate($history);
                 }
             }
         }
+
+        // foreach($list_users as $user) {
+        //     $historiesGroupByActivity = History::select('date', 'activity_id')->where('user_id', $user->id)->groupBy('date', 'activity_id')->orderBy(\DB::raw('DATE(`date`)'))->get()->groupBy('activity_id');
+
+        //     foreach ($historiesGroupByActivity as $activity_id => $histories) {
+        //         $pointFocus = null;
+        //         $prevDate = null;
+
+        //         foreach($histories as $history) {
+        //             if(!$pointFocus && !$prevDate) {
+        //                 $pointFocus = PointFocus::updateOrCreate(
+        //                     [
+        //                         'activity_id' => $activity_id,
+        //                         'start_date' => $history->date,
+        //                     ],
+        //                     [
+        //                         'repeated_days_count' => 1,
+        //                         'point' => 0,
+        //                         'user_id' => $user->id,
+        //                     ]
+        //                 );
+
+        //                 $prevDate = Carbon::parse($history->date);
+
+        //                 continue;
+        //             }
+
+        //             if(Carbon::parse($history->date)->diffInDays($prevDate) == 1) {
+        //                 $pointFocus->repeated_days_count += 1;
+        //                 $pointFocus->end_date = $history->date;
+        //                 $pointFocus->point = $pointFocus->repeated_days_count == 1 ? 1 : pow(2, $pointFocus->repeated_days_count);
+        //                 $pointFocus->save();
+        //             } else {
+        //                 // create new point focus row
+        //                 $pointFocus = PointFocus::updateOrCreate(
+        //                     [
+        //                         'activity_id' => $activity_id,
+        //                         'start_date' => $history->date,
+        //                     ],
+        //                     [
+        //                         'repeated_days_count' => 1,
+        //                         'point' => 0,
+        //                         'user_id' => $user->id,
+        //                     ]
+        //                 );
+
+        //             }
+        //             $prevDate = Carbon::parse($history->date);
+        //         }
+        //     }
+        // }
 
         return 0;
     }
