@@ -141,11 +141,12 @@ class ActivityRepositoryImplementation extends BaseRepositoryImplementation impl
                     $timestamps = $histories->map(function($history){
                         return [
                             'timestamp' => Activity::convertSpeedrunValueToTimestamp($history->value),
+                            'millisecond' => Activity::convertSpeedrunValueToMillisecond($history->value),
                             'value' => $history->value
                         ];
                     });
-                    $avg = $timestamps->avg('timestamp');
-                    $score = Activity::convertTimestampToSpeedrunValue($avg);
+                    $avg = $timestamps->avg('millisecond');
+                    $score = Activity::convertMillisecondToSpeedrunValue($avg);
                     $score = $this->removeSpeedrunZero($score);
                     $speedtarget = $activity->value;
                     $speedtarget_timestamp = Activity::convertSpeedrunValueToTimestamp($speedtarget);
