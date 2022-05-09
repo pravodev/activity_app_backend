@@ -77,6 +77,44 @@ class Activity extends Model
         return $timestamps;
     }
 
+    public static function convertSpeedrunValueToMillisecond($value)
+    {
+        $split = explode(' ', $value);
+        $new_values = [];
+        $keyname = [
+            'h',
+            'm',
+            's',
+            'ms'
+        ];
+
+        foreach($split as $i => $value) {
+            preg_match_all('!\d+!', $value, $matches);
+            $number = $matches[0][0] ?? null;
+
+            $new_values[$keyname[$i]] = (int) $number;
+        }
+
+
+        $second = ($new_values['h'] * 3600) + ($new_values['m'] * 60) + $new_values['s'];
+
+        $millisecond = ($second * 1000) + $new_values['ms'];
+        return $millisecond;
+    }
+
+    public static function convertMillisecondToSpeedrunValue($value)
+    {
+        $value = $value / 1000;
+        $second = (int) $value;
+        $ms = (int) substr(round(($value - $second) * 1000), 0, 2);
+
+        $hour = (int) floor($second / 3600);
+        $minute = (int) ($second / 60) % 60;
+        $second = $second % 60;
+
+        return "{$hour}m {$minute}m ${second}s {$ms}ms";
+    }
+
     public static function convertTimestampToSpeedrunValue($value)
     {
         $date = \Carbon\Carbon::createFromTimestamp($value)->format('H\h i\m s\s v\m\s');
