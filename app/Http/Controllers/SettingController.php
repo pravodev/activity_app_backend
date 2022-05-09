@@ -17,7 +17,7 @@ class SettingController extends Controller
     {
         $this->settingService = $settingService;
     }
-    
+
     public function index()
     {
         try {
@@ -34,7 +34,7 @@ class SettingController extends Controller
     {
         try {
             $data = $request->validated();
-            $this->settingService->save($data['key'], $data['value']);    
+            $this->settingService->save($data['key'], $data['value'], $data['data']);
             $response = ['error' => false, 'message'=>'save setting success !'];
             return response()->json($response);
         } catch (\Throwable $th) {

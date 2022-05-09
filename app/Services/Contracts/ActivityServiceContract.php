@@ -19,4 +19,5 @@ interface ActivityServiceContract {
 
     public function changePosition($new_position);
 
+    public function getFocusReport($month, $year);
 }

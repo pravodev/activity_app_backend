@@ -109,7 +109,8 @@ class ActivityController extends Controller
     public function getUsingMonthYear($month, $year) {
         try {
             $result = $this->activityService->getUsingMonthYear($month, $year);
-            $response = ['error' => false, 'data' => $result];
+            $resultFocusData = $this->activityService->getFocusReport($month, $year);
+            $response = ['error' => false, 'data' => $result, 'focusData' => $resultFocusData];
             return response()->json($response);
         } catch (\Throwsable $th) {
             // dd($th);

@@ -67,7 +67,7 @@ class UpdateActivity extends FormRequest
             }
         }
 
-        if(get_settings('point_system')) {
+        if(get_settings('point_system', auth()->id())) {
             $rules['bonus_value'] = 'nullable|numeric';
             $rules['penalty_value'] = 'nullable|numeric';
             $rules['point_weight'] = 'required|numeric|min:1';

@@ -17,8 +17,8 @@ class SettingServiceImplementation implements SettingServiceContract {
         return $this->historyRepo->getFormatted();
     }
 
-    public function save($key, $value) {
-        return $this->historyRepo->save($key, $value);
+    public function save($key, $value, $data = null) {
+        return $this->historyRepo->save($key, $value, $data);
     }
-    
+
 }

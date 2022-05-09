@@ -42,6 +42,10 @@ class History extends Model
                 $date = \Carbon\Carbon::parse($model->date);
                 PointTransaction::calculate($model->activity_id, $date->month, $date->year, $user_id);
             }
+
+            if($model->activity->is_focus_enabled) {
+                PointFocus::calculate($model);
+            }
         });
 
         static::saving(function($model){

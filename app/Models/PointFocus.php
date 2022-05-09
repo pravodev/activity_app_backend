@@ -52,9 +52,8 @@ class PointFocus extends Model
     public static function getConfiguration()
     {
         if(!static::$config) {
-            $setting = get_settings('point_focus');
-            $config = $setting ? $setting->data : null;
-
+            $setting = get_settings('point_focus', auth()->id());
+            $config = $setting ? $setting : null;
             if(!$setting) {
                 $config = [
                     1 => 0,
@@ -82,8 +81,7 @@ class PointFocus extends Model
         $yesterday = \Carbon\Carbon::createFromFormat('Y-m-d', $model->date)->subday()->format('Y-m-d');
         $check = History::where('activity_id', $model->activity_id)->where('date', $yesterday)->exists();
         $config = static::getConfiguration();
-        $pointFocus = PointFocus::where('user_id', $model->user_id)->where('activity_id', $model->activity_id)->latest()->first();
-
+        $pointFocus = PointFocus::where('user_id', $model->user_id)->where('activity_id', $model->activity_id)->orderByDesc('start_date')->first();
         if($check) {
             $repeated_day = $pointFocus->repeated_days_count+1;
             if($pointFocus->end_date == $model->date) {
@@ -96,15 +94,15 @@ class PointFocus extends Model
             $pointFocus->repeated_days_count = $repeated_day;
             $pointFocus->point = $point;
             $pointFocus->save();
-
         } else {
-            PointFocus::firstOrCreate([
+            PointFocus::updateOrCreate([
                 'activity_id' => $model->activity_id,
                 'start_date' => $model->date,
                 'end_date' => $model->date,
+                'user_id' => $model->user_id,
+            ], [
                 'repeated_days_count' => 1,
                 'point' => $config[1],
-                'user_id' => $model->user_id,
             ]);
         }
 
@@ -116,6 +114,10 @@ class PointFocus extends Model
             if(!$model->end_date) {
                 $model->end_date = $model->start_date;
             }
+        });
+
+        static::addGlobalScope('byuser', function ($builder) {
+            $builder->where('point_focus.user_id', auth()->id());
         });
     }
 }

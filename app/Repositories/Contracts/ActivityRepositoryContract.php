@@ -11,4 +11,6 @@ interface ActivityRepositoryContract
     public function getDailyUsingMonthYear($date);
 
     public function changePosition($new_position);
+
+    public function getFocusReport($month, $year);
 }

@@ -20,7 +20,7 @@ class Setting extends Model
 
     public function getDataAttribute()
     {
-        return json_decode($value, true);
+        return json_decode($this->attributes['data'], true);
     }
 
     protected static function booted()
