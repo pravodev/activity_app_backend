@@ -82,7 +82,7 @@ class PointFocus extends Model
         $check = History::where('activity_id', $model->activity_id)->where('date', $yesterday)->exists();
         $config = static::getConfiguration();
         $pointFocus = PointFocus::where('user_id', $model->user_id)->where('activity_id', $model->activity_id)->orderByDesc('start_date')->first();
-        if($check) {
+        if($check && $pointFocus) {
             $repeated_day = $pointFocus->repeated_days_count+1;
             if($pointFocus->end_date == $model->date) {
                 $repeated_day = $pointFocus->repeated_days_count;
