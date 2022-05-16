@@ -6,6 +6,6 @@ interface SettingRepositoryContract
 {
     public function getFormatted();
 
-    public function save($key, $value);
+    public function save($key, $value, $data = null);
 
 }

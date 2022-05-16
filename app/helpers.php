@@ -17,7 +17,7 @@ if(!function_exists('get_settings')) {
             }
 
             foreach($query->get() as $set) {
-                $setting[$set->key] = $set->value;
+                $setting[$set->key] = $set->data ?: $set->value;
             }
         }
 

@@ -25,7 +25,8 @@ class SaveSetting extends FormRequest
     {
         return [
             'key' => 'required',
-            'value' => 'required'
+            'value' => 'nullable',
+            'data' => 'nullable'
         ];
     }
 }

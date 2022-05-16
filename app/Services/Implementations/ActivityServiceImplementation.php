@@ -83,4 +83,9 @@ class ActivityServiceImplementation implements ActivityServiceContract {
     public function getDailyUsingMonthYear($date) {
         return $this->activityRepo->getDailyUsingMonthYear($date);
     }
+
+    public function getFocusReport($month, $year)
+    {
+        return $this->activityRepo->getFocusReport($month, $year);
+    }
 }

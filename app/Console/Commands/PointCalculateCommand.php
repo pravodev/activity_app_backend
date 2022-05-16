@@ -39,7 +39,7 @@ class PointCalculateCommand extends Command
      */
     public function handle()
     {
-        if(!get_settings('point_system')) {
+        if(!get_settings('point_system', auth()->id())) {
             $this->error('point system not enabled');
             return 0;
         }

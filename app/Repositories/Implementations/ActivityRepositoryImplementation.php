@@ -8,6 +8,7 @@ use App\Models\History;
 use App\Models\PointTransaction;
 use DB;
 use App\Models\User;
+use App\Models\PointFocus;
 
 class ActivityRepositoryImplementation extends BaseRepositoryImplementation implements ActivityRepositoryContract  {
     public function __construct(Activity $builder)
@@ -336,5 +337,22 @@ class ActivityRepositoryImplementation extends BaseRepositoryImplementation impl
         });
 
         return $activities;
+    }
+
+    public function getFocusReport($month, $year)
+    {
+        $user = auth()->user();
+
+        $pointFocus = PointFocus::with('activity')->whereMonth('start_date', $month)->whereYear('start_date', $year)->get();
+
+        $pointFocus->transform(function($data){
+            $result = $data->toArray();
+            unset($data['activity']);
+            $result['activity_title'] = $data->activity->title;
+            $result['activity_value'] = $data->activity->value;
+
+            return $result;
+        });
+        return $pointFocus;
     }
 }

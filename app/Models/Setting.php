@@ -11,7 +11,17 @@ class Setting extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['key', 'value'];
+    protected $fillable = ['key', 'value', 'data'];
+
+    public function setDataAttribute($value)
+    {
+        $this->attributes['data'] = json_encode($value);
+    }
+
+    public function getDataAttribute()
+    {
+        return json_decode($this->attributes['data'], true);
+    }
 
     protected static function booted()
     {
