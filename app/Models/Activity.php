@@ -25,6 +25,7 @@ class Activity extends Model
         'increase_value',
         'is_hide',
         'is_ms_enable',
+        'is_focus_enabled',
         'criteria',
         'bonus_value',
         'penalty_value',
@@ -43,6 +44,21 @@ class Activity extends Model
         'increase_value' => 'integer',
         'is_hide' => 'integer',
     ];
+
+    public function getBonusValueAttribute()
+    {
+        return floatval($this->attributes['bonus_value']);
+    }
+
+    public function getPenaltyValueAttribute()
+    {
+        return floatval($this->attributes['penalty_value']);
+    }
+
+    public function getPointWeightAttribute()
+    {
+        return floatval($this->attributes['point_weight']);
+    }
 
     public function histories() {
         return $this->hasMany(History::class)->withoutGlobalScope('byuser');

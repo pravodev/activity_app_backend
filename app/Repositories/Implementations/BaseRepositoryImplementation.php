@@ -27,7 +27,7 @@ class BaseRepositoryImplementation implements BaseRepositoryContract
 
     public function allOrder($orderBy, $orderType)
     {
-        
+
         return $this->builder->orderBy($orderBy, $orderType)->get();
     }
 
@@ -54,15 +54,17 @@ class BaseRepositoryImplementation implements BaseRepositoryContract
 
     public function store(array $data)
     {
-        $newData = $this->builder->create($data); 
+        $newData = $this->builder->create($data);
         return $newData->toArray();
     }
 
     public function update(array $data, $id)
     {
-        $update = $this->builder->where('id', $id)->update($data);
+        $update = $this->builder->where('id', $id)->first();
         if($update) {
-            return $this->find($id);
+            $update->fill($data);
+            $update->save();
+            return $update;
         }
         else {
             //throw updateDataFailedException
@@ -91,7 +93,7 @@ class BaseRepositoryImplementation implements BaseRepositoryContract
     }
 
     public function orderBy($orderBy, $orderType) {
-        
+
         $this->builder->orderBy($orderBy, $orderType);
         return $this;
     }

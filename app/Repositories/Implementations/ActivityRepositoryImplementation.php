@@ -152,7 +152,8 @@ class ActivityRepositoryImplementation extends BaseRepositoryImplementation impl
                     $speedtarget = $activity->value;
                     $speedtarget_timestamp = Activity::convertSpeedrunValueToTimestamp($speedtarget);
 
-                    $is_red = $activity->criteria == 'shorter' ? $avg > $speedtarget_timestamp : $avg < $speedtarget_timestamp;
+                    // $is_red = $activity->criteria == 'shorter' ? $avg > $speedtarget_timestamp : $avg < $speedtarget_timestamp;
+                    // $is_red = count($histories) < $activity->target;
                     $criteria_time = $activity->criteria == 'shorter' ? $timestamps->min('timestamp') : $timestamps->max('timestamp');
 
                     $best_time = $timestamps->filter(function($t) use($criteria_time) {
@@ -205,6 +206,7 @@ class ActivityRepositoryImplementation extends BaseRepositoryImplementation impl
                 $data['score'] = $score;
                 $left = $activity->target - $activity->count;
                 $is_red_count = $activity->count < $activity->target;
+                $is_red = $is_red_count;
             } else if($activity->type == 'badhabit') {
                 $is_red = $activity->score > $activity->target;
             } else {
@@ -343,7 +345,7 @@ class ActivityRepositoryImplementation extends BaseRepositoryImplementation impl
     {
         $user = auth()->user();
 
-        $pointFocus = PointFocus::with('activity')->whereMonth('start_date', $month)->whereYear('start_date', $year)->get();
+        $pointFocus = PointFocus::with('activity')->whereMonth('start_date', $month)->whereYear('start_date', $year)->where('repeated_days_count', '>', 1)->get();
 
         $pointFocus->transform(function($data){
             $result = $data->toArray();

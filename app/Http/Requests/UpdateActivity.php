@@ -29,7 +29,8 @@ class UpdateActivity extends FormRequest
         if(request()->without_validation) {
             return [
                 'is_hide' => 'nullable',
-                'color' => 'nullable'
+                'color' => 'nullable',
+                'is_focus_enabled' => 'nullable'
             ];
         }
 

@@ -27,6 +27,15 @@ class MediaGallery extends Model
             return asset('storage/'.$this->value);
         }
 
+        if($this->type === 'youtube') {
+            preg_match("#(?<=v=)[a-zA-Z0-9-]+(?=&)|(?<=v\/)[^&\n]+(?=\?)|(?<=v=)[^&\n]+|(?<=youtu.be/)[^&\n]+#", $this->value, $matches);
+            if(isset($matches[0])) {
+                $embed_link = "https://www.youtube.com/embed/".$matches[0];
+
+                return $embed_link;
+            }
+        }
+
         return $this->value;
     }
 

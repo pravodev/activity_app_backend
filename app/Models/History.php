@@ -37,12 +37,6 @@ class History extends Model
         });
 
         static::created(function($model) {
-            $user_id = request()->student_id ?: auth()->id();
-            if(get_settings('point_system', $user_id)) {
-                $date = \Carbon\Carbon::parse($model->date);
-                PointTransaction::calculate($model->activity_id, $date->month, $date->year, $user_id);
-            }
-
             if($model->activity->is_focus_enabled) {
                 PointFocus::calculate($model);
             }
@@ -51,6 +45,15 @@ class History extends Model
         static::saving(function($model){
             if(!$model->user_id) {
                 $model->user_id = auth()->id();
+            }
+        });
+
+        static::saved(function($model) {
+            $user_id = request()->student_id ?: auth()->id();
+
+            if(get_settings('point_system', $user_id)) {
+                $date = \Carbon\Carbon::parse($model->date);
+                PointTransaction::calculate($model->activity_id, $date->month, $date->year, $user_id);
             }
         });
 

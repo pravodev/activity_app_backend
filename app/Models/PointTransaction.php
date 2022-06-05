@@ -59,24 +59,26 @@ class PointTransaction extends Model
         $target = $activity->target;
         $point_weight = $activity->point_weight ?? 1;
         $point = null;
+        $penalty_value = floatval($activity->penalty_value);
+        $bonus_value = floatval($activity->bonus_value);
 
         if($activity->type == 'badhabit') {
-            if($activity->bonus_value && $total < $target) {
+            if($bonus_value && $total <= $target) {
                 $extra_value = $target - $total;
-                $point = ($extra_value / $activity->bonus_value) * $point_weight;
+                $point = ($extra_value / $bonus_value) * $point_weight;
             }
-            if($activity->penalty_value && $total > $target) {
+            if($penalty_value && $total >= $target) {
                 $left_value = $target - $total;
-                $point = ($left_value / $activity->penalty_value) * $point_weight;
+                $point = ($left_value / $penalty_value) * $point_weight;
             }
         } else  {
-            if($activity->bonus_value && $total > $target) {
+            if($bonus_value && $total >= $target) {
                 $extra_value = $total - $target;
-                $point = ($extra_value / $activity->bonus_value) * $point_weight;
+                $point = ($extra_value / $bonus_value) * $point_weight;
             }
-            if($activity->penalty_value && $total < $target) {
+            if($penalty_value && $total <= $target) {
                 $left_value = $total - $target;
-                $point = ($left_value / $activity->penalty_value) * $point_weight;
+                $point = ($left_value / $penalty_value) * $point_weight;
             }
         }
 
@@ -115,6 +117,8 @@ class PointTransaction extends Model
             $model = PointTransaction::where('activity_id', $activity->id)
                 ->whereMonth('date', $month)
                 ->whereYear('date', $year)
+                ->withoutGlobalScope('byuser')
+                ->where('user_id', $user_id)
                 ->first() ?? new PointTransaction;
 
             $model->activity_id = $activity->id;
@@ -126,61 +130,6 @@ class PointTransaction extends Model
         }
 
         return $point;
-    }
-
-    public static function calculateBonus($activity_id, $month = null, $year = null)
-    {
-        $activity = Activity::find($activity_id);
-        $month = $month ?: now()->month;
-        $year = $year ?: now()->year;
-
-        $histories = History::where('activity_id', $activity->id)
-                    ->whereMonth('date', $month)
-                    ->whereYear('date', $year)
-                    ->doesntHave('point')
-                    ->get();
-
-        $target = $activity->target;
-        $point_weight = $activity->point_weight ?? 1;
-
-        foreach($histories as $history) {
-            $total = in_array($activity->type,  ['speedrun', 'count']) ? 1 : $history->value;
-            $point = null;
-
-            if($activity->type == 'badhabit') {
-                if($activity->bonus_value && $total < $target) {
-                    $extra_value = $target - $total;
-                    $point = ($extra_value / $activity->bonus_value) * $point_weight;
-                }
-                if($activity->penalty_value && $total > $target) {
-                    $left_value = $target - $total;
-                    $point = ($left_value / $activity->penalty_value) * $point_weight;
-                }
-            } else  {
-                if($activity->bonus_value && $total > $target) {
-                    $extra_value = $total - $target;
-                    $point = ($extra_value / $activity->bonus_value) * $point_weight;
-                }
-                if($activity->penalty_value && $total < $target) {
-                    $left_value = $total - $target;
-                    $point = ($left_value / $activity->penalty_value) * $point_weight;
-                }
-            }
-
-            if(!is_null($point)) {
-                PointTransaction::firstOrCreate(
-                    [
-                        'activity_id' => $activity->id,
-                        'history_id' => $history->id,
-                    ],
-                    [
-                        'date' => $history->date,
-                        'time' => $history->time,
-                        'value' => $point,
-                    ]
-                );
-            }
-        }
     }
 
     public static function booted()

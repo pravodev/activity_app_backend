@@ -33,7 +33,11 @@ class MediaGalleryServiceImplementation implements MediaGalleryServiceContract {
                 break;
             case 'youtube':
                 // example url = https://www.youtube.com/watch?v=SMKPKGW083c
-                $youtube_id = substr($input['value'], strpos($input['value'], '?v=')+3);
+                $youtube_id = "";
+                preg_match("#(?<=v=)[a-zA-Z0-9-]+(?=&)|(?<=v\/)[^&\n]+(?=\?)|(?<=v=)[^&\n]+|(?<=youtu.be/)[^&\n]+#", $input['value'], $matches);
+                if(isset($matches[0])) {
+                    $youtube_id = $matches[0];
+                }
                 $input['thumbnail'] = "https://img.youtube.com/vi/{$youtube_id}/hqdefault.jpg";
                 break;
             case 'video':
