@@ -25,7 +25,7 @@ class StoreMediaGallery extends FormRequest
     {
         return [
             'type' => 'required|in:image,video,youtube',
-            'category_id' => 'nullable|exists:categories,id',
+            'category_id' => 'required|exists:categories,id',
             'file' => 'required_unless:type,youtube|file|nullable',
             'value' => 'required_if:type,youtube',
             'thumbnail' => 'required_if:type,video',

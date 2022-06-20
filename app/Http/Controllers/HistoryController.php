@@ -41,7 +41,7 @@ class HistoryController extends Controller
             // dd($th);
             throw new GetDataFailedException('Get Data Failed : Undefined Error');
         }
-        
+
     }
 
     /**
@@ -54,7 +54,7 @@ class HistoryController extends Controller
     {
         try {
             $data = $request->validated();
-            $this->historyService->store($data);    
+            $this->historyService->store($data);
             $response = ['error' => false, 'message'=>'create data success !'];
             return response()->json($response);
         } catch (\Throwable $th) {
@@ -62,8 +62,8 @@ class HistoryController extends Controller
             throw $th;
             throw new StoreDataFailedException('Store Data Failed : Undefined Error');
         }
-        
-        
+
+
     }
 
     /**
@@ -76,7 +76,7 @@ class HistoryController extends Controller
     {
         try {
             $data = $request->validated();
-            $this->historyService->storeBulk($data);    
+            $this->historyService->storeBulk($data);
             $response = ['error' => false, 'message'=>'create data success !'];
             return response()->json($response);
         } catch (\Throwable $th) {
@@ -84,8 +84,8 @@ class HistoryController extends Controller
             return response()->json($th);
             throw new StoreDataFailedException('Store Data Failed : Undefined Error');
         }
-        
-        
+
+
     }
 
     /**
@@ -103,9 +103,10 @@ class HistoryController extends Controller
             $response = ['error' => false, 'message'=>'update data success !'];
             return response()->json($response);
         } catch (\Throwable $th) {
-            throw new UpdateDataFailedException('Update Data Failed : Undefined Error');
+            // throw new UpdateDataFailedException('Update Data Failed : Undefined Error');
+            throw $th;
         }
-        
+
     }
 
     /**
@@ -123,7 +124,7 @@ class HistoryController extends Controller
         } catch (\Throwable $th) {
             throw new DeleteDataFailedException('Delete Data Failed : Undefined Error');
         }
-        
+
     }
 
     public function search(SearchHistory $request) {
@@ -164,6 +165,6 @@ class HistoryController extends Controller
         } catch (\Throwable $th) {
             throw new DeleteDataFailedException('Delete Data Failed : Undefined Error');
         }
-        
+
     }
 }
