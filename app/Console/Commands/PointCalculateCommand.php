@@ -5,6 +5,9 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use App\Models\Activity;
 use App\Models\PointTransaction;
+use App\Models\User;
+use App\Models\Setting;
+use App\Models\History;
 
 class PointCalculateCommand extends Command
 {
@@ -39,23 +42,28 @@ class PointCalculateCommand extends Command
      */
     public function handle()
     {
-        if(!get_settings('point_system', auth()->id())) {
-            $this->error('point system not enabled');
-            return 0;
-        }
-
         // $activities = Activity::has('histories')->get();
 
         // foreach($activities as $activity) {
         //     PointTransaction::calculate($activity->id);
         // }
 
-        $dates = History::selectRaw('MONTH(date) date, YEAR(date) year')->groupBy(\DB::raw('MONTH(date), YEAR(date)'))->get();
-        $activities = Activity::has('histories')->get();
+        $userIds = Setting::withoutGlobalScopes()->where('key', 'point_system')->where('value', 1)->pluck('user_id');
+        $users = User::whereIn('id', $userIds)->get();
 
-        foreach($dates as $date) {
-            foreach($activities as $activity) {
-                PointTransaction::calculate($activity->id, $date->date, $date->year);
+        foreach($users as $user) {
+            $dates = History::withoutGlobalScopes()
+                ->where('user_id', $user->id)
+                ->selectRaw('MONTH(date) date, YEAR(date) year')
+                ->groupBy(\DB::raw('MONTH(date), YEAR(date)'))
+                ->get();
+
+            $activities = Activity::withoutGlobalScopes()->has('histories')->where('user_id', $user->id)->get();
+
+            foreach($dates as $date) {
+                foreach($activities as $activity) {
+                    PointTransaction::calculate($activity->id, $date->date, $date->year, $user->id);
+                }
             }
         }
 
