@@ -70,11 +70,12 @@ class ActivityController extends Controller
     {
         try {
             $data = $request->validated();
-            $this->activityService->update($data, $activity->id);
-            $response = ['error' => false, 'message'=>'update data success !'];
+            $activity = $this->activityService->update($data, $activity->id);
+            $response = ['error' => false, 'message'=>'update data success !', 'data' => $activity];
             return response()->json($response);
         } catch (\Throwable $th) {
-            throw new UpdateDataFailedException('Update Data Failed : Undefined Error');
+            throw $th;
+            // throw new UpdateDataFailedException('Update Data Failed : Undefined Error');
         }
     }
 

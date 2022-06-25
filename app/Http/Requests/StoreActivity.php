@@ -45,6 +45,9 @@ class StoreActivity extends FormRequest
             'increase_value' => 'nullable|required_unless:type,count,speedrun|numeric|min:1',
             'is_hide' => 'required|boolean',
             'criteria' => 'required_if:type,speedrun|in:longer,shorter',
+            'is_media_enabled' => 'required|boolean',
+            'media_type' => 'required_if:is_media_enabled,1|in:image,video',
+            'media_file' => 'required_if:is_media_enabled,1|file',
         ];
 
         if(in_array(request()->type, ['value', 'speedrun', 'badhabit'])) {

@@ -5,6 +5,9 @@ use App\Services\Contracts\ActivityServiceContract;
 use App\Repositories\Contracts\ActivityRepositoryContract as ActivityRepo;
 use App\Exceptions\StoreDataFailedException;
 use App\Models\PointTransaction;
+use Storage;
+use App\Models\Activity;
+use Illuminate\Http\UploadedFile;
 
 class ActivityServiceImplementation implements ActivityServiceContract {
     protected $activityRepo;
@@ -38,6 +41,13 @@ class ActivityServiceImplementation implements ActivityServiceContract {
             $input['criteria'] = isset($input['criteria']) ? $input['criteria'] : 'shorter';
         }
 
+        if($input['is_media_enabled']) {
+            $path = 'user_'.auth()->id().'/activities/';
+            $fileid = uniqid(time());
+            $name = $input['media_type'].'-'.$fileid.'.'.($input['media_file']->guessExtension() ?: 'jpg');
+            $input['media_file'] = $input['media_file']->storeAs($path, $name, 'public');
+        }
+
         return $this->activityRepo->store($input);
     }
 
@@ -55,6 +65,18 @@ class ActivityServiceImplementation implements ActivityServiceContract {
 
         // $input['can_change'] = $can_change;
         // $input['use_textfield'] = $use_textfield;
+
+        if($input['is_media_enabled'] && is_a($input['media_file'], UploadedFile::class) ) {
+            $activity = Activity::find($id);
+            Storage::disk('public')->delete($activity->media_file);
+
+            $path = 'user_'.auth()->id().'/activities';
+            $fileid = uniqid(time());
+            $name = $input['media_type'].'-'.$fileid.'.'.($input['media_file']->guessExtension() ?: 'jpg');
+            $input['media_file'] = $input['media_file']->storeAs($path, $name, 'public');
+        } else {
+            unset($input['media_file']);
+        }
 
         return $this->activityRepo->update($input, $id);
     }

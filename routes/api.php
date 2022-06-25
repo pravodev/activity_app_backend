@@ -39,6 +39,7 @@ Route::middleware('auth:api')->group(function(){
     Route::resource('activities', 'ActivityController')->except([
         'create', 'show'
     ]);
+    Route::post('activities/{activity}', 'ActivityController@update');
 
     Route::post('/histories/bulkDelete', 'HistoryController@bulkDelete');
     Route::resource('histories', 'HistoryController')->except([

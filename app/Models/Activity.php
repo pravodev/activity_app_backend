@@ -30,6 +30,9 @@ class Activity extends Model
         'bonus_value',
         'penalty_value',
         'point_weight',
+        'is_media_enabled',
+        'media_type',
+        'media_file',
     ];
 
     protected $appends = [
@@ -37,6 +40,7 @@ class Activity extends Model
         'target',
         'is_red',
         'type_text',
+        'media_file_link',
     ];
 
     protected $casts = [
@@ -58,6 +62,11 @@ class Activity extends Model
     public function getPointWeightAttribute()
     {
         return floatval($this->attributes['point_weight']);
+    }
+
+    public function getMediaFileLinkAttribute()
+    {
+        return asset('storage').'/'.$this->media_file;
     }
 
     public function histories() {
@@ -159,9 +168,16 @@ class Activity extends Model
             }
         });
 
+        static::deleted(function($model){
+            if($model->media_file) {
+                \Storage::disk('public')->delete($model->media_file);
+            }
+        });
+
         static::addGlobalScope('byuser', function ($builder) {
             $builder->where('activities.user_id', auth()->id());
         });
+
     }
 
     public function getSpeedrunParsedAttribute()
