@@ -38,7 +38,7 @@ class StoreActivity extends FormRequest
             //     'required_if:type,value,speedrun',
             //     new SpeedrunRule(request()->type)
             // ],
-            'target' => 'required_unless:type,alarm|numeric|min:1',
+            'target' => 'required_unless:type,alarm|numeric',
             'can_change' => 'required_if:type,value|boolean',
             // 'use_textfield' => 'required|boolean',
             'color' => 'required|string',

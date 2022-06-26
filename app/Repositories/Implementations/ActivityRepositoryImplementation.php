@@ -327,7 +327,7 @@ class ActivityRepositoryImplementation extends BaseRepositoryImplementation impl
                 'title' => $activity->title,
                 'score' => $activity->score,
                 'value' => $activity->value,
-                'percent' => round((int) $activity->score / (int) $activity->target * 100),
+                'percent' => $activity->target ? round((int) $activity->score / (int) $activity->target * 100) : null,
                 'stopwatch_value' => [],
             ];
 
