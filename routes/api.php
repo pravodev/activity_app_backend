@@ -66,6 +66,8 @@ Route::middleware('auth:api')->group(function(){
         'create', 'show'
     ]);
 
+    Route::delete('/point-focus/{id}', 'PointFocusController@delete');
+
     Route::get('/auth/profile', 'AuthController@getProfile');
     Route::patch('/auth/profile', 'AuthController@updateProfile');
     Route::patch('/auth/updateParentEmail', 'AuthController@updateParentEmail');

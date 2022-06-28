@@ -24,6 +24,7 @@ class ActivityRepositoryImplementation extends BaseRepositoryImplementation impl
 
         $data->transform(function($activity){
             $activity['score_target'] = $activity['score'] . " / " . $activity['target'];
+            $activity['count_yesterday'] = $activity['histories']->where('date', now()->yesterday()->format('Y-m-d'))->count();
 
             if($activity['type'] == 'speedrun') {
                 $activity['score_target'] = $activity['score'] . " / " . $activity['count'];
@@ -345,7 +346,7 @@ class ActivityRepositoryImplementation extends BaseRepositoryImplementation impl
     {
         $user = auth()->user();
 
-        $pointFocus = PointFocus::with('activity')->whereMonth('start_date', $month)->whereYear('start_date', $year)->where('repeated_days_count', '>', 1)->get();
+        $pointFocus = PointFocus::latest()->with('activity')->whereMonth('start_date', $month)->whereYear('start_date', $year)->where('repeated_days_count', '>', 1)->get();
 
         $pointFocus->transform(function($data){
             $result = $data->toArray();
