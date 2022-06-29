@@ -98,6 +98,10 @@ class ActivityRepositoryImplementation extends BaseRepositoryImplementation impl
             ->groupBy(DB::raw('activities.id, activities.type, activities.title, activities.target, activities.value'))
             ->orderByDesc(DB::raw('MAX(histories.created_at)'));
 
+        if($activity_id = request()->query('activity_id')) {
+            $activities = $activities->where('activities.id', $activity_id);
+        }
+
         if($student_id = request()->query('student_id')) {
             $activities = $activities->withoutGlobalScope('byuser')->where('activities.user_id', $student_id);
         }
@@ -346,9 +350,14 @@ class ActivityRepositoryImplementation extends BaseRepositoryImplementation impl
     {
         $user = auth()->user();
 
-        $pointFocus = PointFocus::latest()->with('activity')->whereMonth('start_date', $month)->whereYear('start_date', $year)->where('repeated_days_count', '>', 1)->get();
+        $pointFocus = PointFocus::latest()->with('activity')->whereMonth('start_date', $month)->whereYear('start_date', $year)->where('repeated_days_count', '>', 1);
 
-        $pointFocus->transform(function($data){
+
+        if($activity_id = request()->query('activity_id')) {
+            $pointFocus = $pointFocus->where('activity_id', $activity_id);
+        }
+
+        $pointFocus->get()->transform(function($data){
             $result = $data->toArray();
             unset($data['activity']);
             $result['activity_title'] = $data->activity->title;
