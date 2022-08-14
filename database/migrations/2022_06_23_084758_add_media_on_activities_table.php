@@ -14,9 +14,17 @@ class AddMediaOnActivitiesTable extends Migration
     public function up()
     {
         Schema::table('activities', function(Blueprint $table) {
-            $table->boolean('is_media_enabled')->default(0);
-            $table->string('media_type')->nullable()->comment('image / video');
-            $table->string('media_file')->nullable();
+            if(!Schema::hasColumn('activities', 'is_media_enabled')) {
+                $table->boolean('is_media_enabled')->default(0);
+            }
+
+            if(!Schema::hasColumn('activities', 'media_type')) {
+                $table->string('media_type')->nullable()->comment('image / video');
+            }
+
+            if(!Schema::hasColumn('activities', 'media_file')) {
+                $table->string('media_file')->nullable();
+            }
         });
     }
 
@@ -27,6 +35,10 @@ class AddMediaOnActivitiesTable extends Migration
      */
     public function down()
     {
-        //
+        Schema::table('activities', function(Blueprint $table) {
+            $table->dropColumn('is_media_enabled');
+            $table->dropColumn('media_type');
+            $table->dropColumn('media_file');
+        });
     }
 }

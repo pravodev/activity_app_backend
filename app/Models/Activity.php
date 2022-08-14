@@ -33,6 +33,7 @@ class Activity extends Model
         'is_media_enabled',
         'media_type',
         'media_file',
+        'status',
     ];
 
     protected $appends = [
@@ -47,7 +48,18 @@ class Activity extends Model
         'can_change' => 'integer',
         'increase_value' => 'integer',
         'is_hide' => 'integer',
+        'status' => 'integer',
     ];
+
+    public function scopeActive($q)
+    {
+        return $q->where('activities.status', 1);
+    }
+
+    public function scopeInactive($q)
+    {
+        return $q->where('activities.status', 0);
+    }
 
     public function getBonusValueAttribute()
     {
@@ -149,11 +161,6 @@ class Activity extends Model
 
     public static function booted()
     {
-        // static::creating(function($model){
-        //     $lastposition = self::get()->pluck('position')->first() ?? 0;
-        //     $model->position = $lastposition+1;
-        // });
-
         static::saving(function($model){
             if(!$model->user_id) {
                 $model->user_id = auth()->id();
@@ -165,6 +172,31 @@ class Activity extends Model
                 if($check)  {
                     $model->title = $model->title .' 1';
                 }
+            }
+
+            if($model->isDirty('status')) {
+                if(!$model->status) {
+                    $model->is_hide = 1;
+                    $model->bonus_value = 0;
+                    $model->penalty_value = 0;
+                } else {
+                    $model->is_hide = 0;
+                }
+            } else if($model->isDirty('is_hide')) {
+                // if change is_hide but value of status 0
+                // set is_hide to 1
+                if($model->is_hide) {
+                    $model->status = 0;
+                    $model->bonus_value = 0;
+                    $model->penalty_value = 0;
+                } else {
+                    $model->status = 1;
+                }
+            }
+
+
+            if($model->isDirty('is_focus_enabled') && $model->is_focus_enabled) {
+                PointFocus::recalculate($model, now()->month);
             }
         });
 

@@ -26,8 +26,11 @@ class HistoryRepositoryImplementation extends BaseRepositoryImplementation imple
                     }
                 }
             })
+            ->where(function($q){
+                $q->where('activities.status', 1);
+            })
             ->select("histories.*", "activities.id as activity_id", "activities.title as activity_title")
-            ->where('user_id', auth()->id())
+            ->where('histories.user_id', auth()->id())
             ->get();
 
         return $result;
@@ -37,7 +40,11 @@ class HistoryRepositoryImplementation extends BaseRepositoryImplementation imple
         // $result = DB::table('histories')->get();
         // return $result;
         $result = DB::table('histories')->select(DB::raw("DATE_FORMAT(histories.date, '%m-%Y') as historyDate"),  DB::raw('YEAR(histories.date) year, MONTH(histories.date) month'))
-        ->where('deleted_at', null)
+        ->where('histories.deleted_at', null)
+        ->join("activities", "activities.id", "histories.activity_id")
+        ->where(function($q){
+            $q->where('activities.status', 1);
+        })
         ->groupby('year','month', 'historyDate')
         ->orderBy(DB::raw("YEAR(histories.date)"), 'DESC')
         ->orderBy(DB::raw("MONTH(histories.date)"), 'DESC');
@@ -47,9 +54,9 @@ class HistoryRepositoryImplementation extends BaseRepositoryImplementation imple
         }
 
         if(isset($params['student_id'])) {
-            $result = $result->where('user_id', $params['student_id']);
+            $result = $result->where('histories.user_id', $params['student_id']);
         } else {
-            $resulst = $result->where('user_id', auth()->id());
+            $result = $result->where('histories.user_id', auth()->id());
         }
 
         $result = $result->get();

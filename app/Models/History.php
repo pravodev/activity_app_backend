@@ -57,6 +57,12 @@ class History extends Model
             }
         });
 
+        static::updated(function($model) {
+            if($model->isDirty('date') && $model->activity->is_focus_enabled) {
+                PointFocus::recalculate($model->activity, \Carbon\Carbon::parse($model->date)->month);
+            }
+        });
+
         static::addGlobalScope('byuser', function ($builder) {
             if(auth()->id()) {
                 $builder->where('user_id', auth()->id());

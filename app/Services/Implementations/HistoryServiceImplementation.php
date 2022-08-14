@@ -14,8 +14,14 @@ class HistoryServiceImplementation implements HistoryServiceContract {
     }
 
     public function get() {
-        $data = $this->historyRepo->datatableWith(['activity:id,title,can_change,type'])
-            ->orderBy('id', 'desc')->get();
+        $data = $this->historyRepo
+            ->datatableWith(['activity:id,title,can_change,type'])
+            ->orderBy('id', 'desc')
+            ->getModel()
+            ->whereHas('activity', function($q){
+                return $q->active();
+            })
+            ->get();
         $data = collect($data)->map(function ($item) {
             if($item['activity'] == null) {
                 $item = Arr::add($item, 'activity_title', "deleted activity");

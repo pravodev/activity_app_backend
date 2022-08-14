@@ -72,7 +72,7 @@ class ActivityRepositoryImplementation extends BaseRepositoryImplementation impl
         return $result;
     }
 
-    public function getUsingMonthYear($month, $year) {
+    public function getUsingMonthYear($month, $year, $showOnlyActiveStatus = false) {
         $get_score_query = "
         CASE
             WHEN activities.type IN('count') THEN COUNT(histories.id)
@@ -88,7 +88,7 @@ class ActivityRepositoryImplementation extends BaseRepositoryImplementation impl
         };
 
         $activities = Activity::with(['histories' => function($query) use ($month, $year) {
-                $query->whereYear("date", $year)->whereMonth("date", $month);
+                $query->whereYear("date", $year)->whereMonth("date", $month)->orderBy('date', 'desc');
             }])
             ->leftJoin('histories', $join_histories)
             ->select(DB::raw('activities.*'))
@@ -97,6 +97,10 @@ class ActivityRepositoryImplementation extends BaseRepositoryImplementation impl
             ->groupBy('histories.activity_id')
             ->groupBy(DB::raw('activities.id, activities.type, activities.title, activities.target, activities.value'))
             ->orderByDesc(DB::raw('MAX(histories.created_at)'));
+
+        if($showOnlyActiveStatus) {
+            $activities = $activities->active();
+        }
 
         if($activity_id = request()->query('activity_id')) {
             $activities = $activities->where('activities.id', $activity_id);
@@ -113,11 +117,12 @@ class ActivityRepositoryImplementation extends BaseRepositoryImplementation impl
         if(get_settings('point_system', $user_id)) {
             $list_points = PointTransaction::whereYear('date', $year)
                 ->whereMonth('date', $month)
-                ->selectRaw('activity_id, SUM(value) as total')
+                ->selectRaw('activity_id, SUM(value) as total, SUM(IF(is_bonus = 1, 0, value)) as total_point, SUM(IF(is_bonus = 1, value, 0)) as total_bonus_point')
                 ->groupBy('activity_id')
                 ->withoutGlobalScope('byuser')
                 ->where('user_id', $user_id)
                 ->get();
+
         }
 
         $activities = $activities->map(function($activity) use($list_points, $month, $year, $user_id) {
@@ -132,13 +137,22 @@ class ActivityRepositoryImplementation extends BaseRepositoryImplementation impl
                 'score' => $activity->score ?? 0,
                 'count' => $activity->count,
                 'point' => null,
+                'break_record_point' => null,
                 'histories' => $activity->histories,
                 'position' => rtrim(floatval($activity->position), 0),
             ]);
 
             if(get_settings('point_system', $user_id)) {
-                $point = $list_points->where('activity_id', $activity->id)->pluck('total')->first();
+                $point = $list_points->where('activity_id', $activity->id)->pluck('total_point')->first();
                 $data['point'] = is_null($point) ? PointTransaction::calculate($activity->id, $month, $year, $user_id)  : $point;
+                $point = $list_points->where('activity_id', $activity->id)->pluck('total_bonus_point')->first();
+                $data['break_record_point'] = $point >= 1 ? $point : null;
+
+                if(is_null($data['point']) && is_null($data['break_record_point'])) {
+                    $data['total_point'] = null;
+                } else {
+                    $data['total_point'] = $data['point'] + $data['break_record_point'];
+                }
             }
 
             if($activity->type == 'speedrun') {
@@ -288,13 +302,10 @@ class ActivityRepositoryImplementation extends BaseRepositoryImplementation impl
         return $activities->count();
     }
 
-    public function getDailyUsingMonthYear($date)
+    public function getDailyUsingMonthYear($date, $showOnlyActiveStatus = true)
     {
         $get_score_query = "
-        CASE
-        WHEN activities.type IN('value', 'badhabit') THEN SUM(histories.value)
-        ELSE COUNT(histories.id)
-        END as score
+            COUNT(histories.id) as score
         ";
 
         $join_histories = function($join) use($date) {
@@ -318,6 +329,10 @@ class ActivityRepositoryImplementation extends BaseRepositoryImplementation impl
 
         if($student_id = request()->query('student_id')) {
             $activities = $activities->withoutGlobalScope('byuser')->where('activities.user_id', $student_id);
+        }
+
+        if($showOnlyActiveStatus) {
+            $activities = $activities->active();
         }
 
         $activities = $activities->get();
@@ -350,21 +365,31 @@ class ActivityRepositoryImplementation extends BaseRepositoryImplementation impl
     {
         $user = auth()->user();
 
-        $pointFocus = PointFocus::latest()->with('activity')->whereMonth('start_date', $month)->whereYear('start_date', $year)->where('repeated_days_count', '>', 1);
+        $filterByStatus = function($q) {
+            $q->active();
+        };
 
+        $pointFocus = PointFocus::orderByDesc('end_date')
+            ->orderByDesc('created_at')
+            ->with(['activity' => $filterByStatus])
+            ->whereMonth('start_date', $month)
+            ->whereYear('start_date', $year)
+            ->where('repeated_days_count', '>', 1)
+            ->whereHas('activity', $filterByStatus);
 
         if($activity_id = request()->query('activity_id')) {
             $pointFocus = $pointFocus->where('activity_id', $activity_id);
         }
 
-        $pointFocus->get()->transform(function($data){
+        $pointFocus = $pointFocus->get();
+
+        return $pointFocus->transform(function($data){
             $result = $data->toArray();
-            unset($data['activity']);
+            unset($result['activity']);
             $result['activity_title'] = $data->activity->title;
             $result['activity_value'] = $data->activity->value;
 
             return $result;
         });
-        return $pointFocus;
     }
 }

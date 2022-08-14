@@ -27,6 +27,11 @@ class ActivityServiceImplementation implements ActivityServiceContract {
         $can_change = 0;
         $use_textfield = 0;
 
+        if(!isset($input['status'])) {
+            // default active
+            $input['status'] = 1;
+        }
+
         if(in_array($input['type'], ['count', 'speedrun'])) {
             $can_change = 1;
             $use_textfield = 1;
@@ -52,21 +57,7 @@ class ActivityServiceImplementation implements ActivityServiceContract {
     }
 
     public function update($input, $id) {
-        // $can_change = 0;
-        // $use_textfield = 0;
-
-        // if($input['type'] == 'count') {
-        //     $can_change = 1;
-        //     $use_textfield = 1;
-        // } else if($input['type'] == 'speedrun') {
-        //     $can_change = 1;
-        //     $use_textfield = 1;
-        // }
-
-        // $input['can_change'] = $can_change;
-        // $input['use_textfield'] = $use_textfield;
-
-        if($input['is_media_enabled'] && is_a($input['media_file'], UploadedFile::class) ) {
+        if(!empty($input['is_media_enabled']) && is_a($input['media_file'], UploadedFile::class) ) {
             $activity = Activity::find($id);
             Storage::disk('public')->delete($activity->media_file);
 
@@ -89,8 +80,8 @@ class ActivityServiceImplementation implements ActivityServiceContract {
         return $this->activityRepo->search($fields);
     }
 
-    public function getUsingMonthYear($month, $year) {
-        return $this->activityRepo->getUsingMonthYear($month, $year);
+    public function getUsingMonthYear($month, $year, $showOnlyActiveStatus = true) {
+        return $this->activityRepo->getUsingMonthYear($month, $year, $showOnlyActiveStatus);
     }
 
     public function changePosition($new_position) {
@@ -102,8 +93,8 @@ class ActivityServiceImplementation implements ActivityServiceContract {
         return $this->activityRepo->import($parent_id);
     }
 
-    public function getDailyUsingMonthYear($date) {
-        return $this->activityRepo->getDailyUsingMonthYear($date);
+    public function getDailyUsingMonthYear($date, $showOnlyActiveStatus = true) {
+        return $this->activityRepo->getDailyUsingMonthYear($date, $showOnlyActiveStatus);
     }
 
     public function getFocusReport($month, $year)

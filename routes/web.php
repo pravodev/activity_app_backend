@@ -57,3 +57,4 @@ Route::get('test-calculate-point', function(){
     }
     return 'done';
 });
+Route::get('logs', [\Rap2hpoutre\LaravelLogViewer\LogViewerController::class, 'index']);

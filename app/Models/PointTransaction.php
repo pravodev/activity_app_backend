@@ -16,9 +16,7 @@ class PointTransaction extends Model
         'value',
         'date',
         'time',
-        'bonus_value',
-        'penalty_value',
-        'point_weight',
+        'is_bonus',
     ];
 
     public function getValueAttribute($value)
@@ -48,6 +46,7 @@ class PointTransaction extends Model
                     ->whereMonth('date', $month)
                     ->whereYear('date', $year)
                     ->withoutGlobalScope('byuser')
+                    ->orderByDesc('date')
                     ->get();
 
         if(in_array($activity->type, ['speedrun', 'count'])) {
@@ -76,7 +75,7 @@ class PointTransaction extends Model
                 $extra_value = $total - $target;
                 $point = ($extra_value / $bonus_value) * $point_weight;
             }
-            if($penalty_value && $total <= $target) {
+            if($penalty_value && $total < $target) {
                 $left_value = $total - $target;
                 $point = ($left_value / $penalty_value) * $point_weight;
             }
@@ -99,17 +98,33 @@ class PointTransaction extends Model
                 return $valueMonth == $month && $valueYear == $year;
             });
             $criteria_time = $activity->criteria == 'shorter' ? $historyThisMonth->min('timestamp') : $historyThisMonth->max('timestamp');
-            // $best_time = $historyThisMonth->filter(function($t) use($criteria_time) {
-            //     return $t['timestamp'] == $criteria_time;
-            // })->first();
 
             $criteria_alltime = $activity->criteria == 'shorter' ? $histories->min('timestamp') : $histories->max('timestamp');
-            // $best_record_alltime = $histories->filter(function($t) use($criteria_time) {
-            //     return $t['timestamp'] == $criteria_time;
-            // })->first();
 
-            if($histories->count() && $criteria_time == $criteria_alltime) {
-                $point += 10;
+            $historyPrevMonth = $histories->filter(function($history) use($month, $year) {
+                $historydate = \Carbon\Carbon::parse($history['date']);
+
+                $compare = now()->day(1)->month($month)->year($year);
+                return $compare->gt($historydate);
+            });
+
+            if($historyPrevMonth->count() && $histories->count() && $criteria_time == $criteria_alltime) {
+                // insert bonus point
+                $model = PointTransaction::where('activity_id', $activity->id)
+                    ->whereMonth('date', $month)
+                    ->whereYear('date', $year)
+                    ->withoutGlobalScope('byuser')
+                    ->where('user_id', $user_id)
+                    ->where('is_bonus', 1)
+                    ->first() ?? new PointTransaction;
+
+                $model->is_bonus = 1;
+                $model->activity_id = $activity->id;
+                $model->user_id = $user_id;
+                $model->date = now()->month($month)->year($year)->format('Y-m-d');
+                $model->time = now()->month($month)->year($year)->format('H:m:s');
+                $model->value = 10;
+                $model->save();
             }
         }
 
@@ -119,6 +134,7 @@ class PointTransaction extends Model
                 ->whereYear('date', $year)
                 ->withoutGlobalScope('byuser')
                 ->where('user_id', $user_id)
+                ->where('is_bonus', 0)
                 ->first() ?? new PointTransaction;
 
             $model->activity_id = $activity->id;

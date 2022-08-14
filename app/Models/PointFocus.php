@@ -75,6 +75,33 @@ class PointFocus extends Model
         return static::$config;
     }
 
+    public static function recalculate(Activity $activity, $month)
+    {
+        $listHistoryInMonth = History::where('activity_id', $activity->id)
+            ->whereMonth('date', $month)
+            ->orderBy('date')
+            ->get();
+
+        $firstHistory = $listHistoryInMonth->first();
+
+        if($firstHistory) {
+            $date = \Carbon\Carbon::parse($firstHistory->date);
+            $yesterday = $date->yesterday();
+            if($yesterday->month !== $date->month) {
+                // to do: get prev month continous day
+            }
+        }
+
+        $listHistory = $listHistoryInMonth;
+
+        // reset count
+        PointFocus::where('activity_id', $activity->id)->whereMonth('end_date', $month)->delete();
+
+        foreach($listHistory as $history) {
+            self::calculate($history);
+        }
+    }
+
     public static function calculate(History $model)
     {
         // $check =
@@ -82,6 +109,8 @@ class PointFocus extends Model
         $check = History::where('activity_id', $model->activity_id)->where('date', $yesterday)->exists();
         $config = static::getConfiguration();
         $pointFocus = PointFocus::where('user_id', $model->user_id)->where('activity_id', $model->activity_id)->orderByDesc('start_date')->first();
+        $activity = Activity::withoutGlobalScopes()->find($model->activity_id);
+
         if($check && $pointFocus) {
             $repeated_day = $pointFocus->repeated_days_count+1;
             if($pointFocus->end_date == $model->date) {
@@ -92,17 +121,19 @@ class PointFocus extends Model
 
             $pointFocus->end_date = $model->date;
             $pointFocus->repeated_days_count = $repeated_day;
-            $pointFocus->point = $point;
+            $pointFocus->point = $activity->type == 'badhabit' ? -$point : $point;
             $pointFocus->save();
         } else {
+            $point = $config[1];
+
             PointFocus::updateOrCreate([
                 'activity_id' => $model->activity_id,
                 'start_date' => $model->date,
-                'end_date' => $model->date,
                 'user_id' => $model->user_id,
             ], [
+                'end_date' => $model->date,
                 'repeated_days_count' => 1,
-                'point' => $config[1],
+                'point' => $activity->type == 'badhabit' ? -$point : $point,
             ]);
         }
 

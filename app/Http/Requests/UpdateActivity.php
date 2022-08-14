@@ -57,6 +57,8 @@ class UpdateActivity extends FormRequest
             'is_media_enabled' => 'required|boolean',
             'media_type' => 'required_if:is_media_enabled,1|in:image,video',
             'media_file' => 'nullable|file',
+            'status' => 'nullable',
+            'is_focus_enabled' => 'required|boolean',
         ];
 
         if(in_array(request()->type, ['value', 'speedrun', 'badhabit'])) {
