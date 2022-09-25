@@ -25,6 +25,9 @@ class MediaGalleryServiceImplementation implements MediaGalleryServiceContract {
         if($input['type'] !== 'youtube') {
             $name = $filename.'-'.$fileid.'.'.$input['file']->guessExtension();
             $input['value'] = $input['file']->storeAs($path, $name, 'public');
+
+            $full_path = \Storage::disk('public')->path($input['value']);
+            crop_transparent($full_path);
         }
 
         switch ($input['type']) {

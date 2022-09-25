@@ -54,7 +54,6 @@ class PointTransaction extends Model
         } else {
             $total = $history->sum('value');
         }
-
         $target = $activity->target;
         $point_weight = $activity->point_weight ?? 1;
         $point = null;
@@ -123,7 +122,7 @@ class PointTransaction extends Model
                 $model->user_id = $user_id;
                 $model->date = now()->month($month)->year($year)->format('Y-m-d');
                 $model->time = now()->month($month)->year($year)->format('H:m:s');
-                $model->value = 10;
+                $model->value = get_settings('break_record_point', $user_id) ?: 10;
                 $model->save();
             }
         }

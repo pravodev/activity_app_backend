@@ -160,4 +160,16 @@ class ActivityController extends Controller
 
         return response()->json($response);
     }
+
+    public function exportMonthly(Request $request)
+    {
+        $request->validate([
+            'month' => 'required',
+            'year' => 'required',
+            'user_id' => 'required',
+        ]);
+
+        $export = new \App\Exports\MonthlyReportExport($request->month, $request->year);
+        return \Maatwebsite\Excel\Facades\Excel::download($export, 'export_'.$request->month.'_'.$request->year.'.xlsx');
+    }
 }

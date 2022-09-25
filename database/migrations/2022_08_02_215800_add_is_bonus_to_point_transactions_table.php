@@ -14,7 +14,9 @@ class AddIsBonusToPointTransactionsTable extends Migration
     public function up()
     {
         Schema::table('point_transactions', function (Blueprint $table) {
-            $table->boolean('is_bonus')->default(0)->after('value');
+            if(!Schema::hasColumn('point_transactions', 'is_bonus')) {
+                $table->boolean('is_bonus')->default(0)->after('value');
+            }
         });
     }
 

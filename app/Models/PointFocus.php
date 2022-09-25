@@ -111,6 +111,11 @@ class PointFocus extends Model
         $pointFocus = PointFocus::where('user_id', $model->user_id)->where('activity_id', $model->activity_id)->orderByDesc('start_date')->first();
         $activity = Activity::withoutGlobalScopes()->find($model->activity_id);
 
+        if(in_array($activity->type, ['value', 'badhabit']) && $model->value < $activity->focus_min_value) {
+            // skip focus because value lower than focus min value
+            return false;
+        }
+
         if($check && $pointFocus) {
             $repeated_day = $pointFocus->repeated_days_count+1;
             if($pointFocus->end_date == $model->date) {

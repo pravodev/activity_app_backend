@@ -28,3 +28,22 @@ if(!function_exists('get_settings')) {
         return (object) $setting;
     }
 }
+
+if(!function_exists('crop_transparent')){
+    function crop_transparent($path)
+    {
+        $im = imagecreatefrompng($path);
+        $cropped = imagecropauto($im, IMG_CROP_TRANSPARENT);
+        if ($cropped !== false) { // in case a new image resource was returned
+            imagedestroy($im);    // we destroy the original image
+            $im = $cropped;       // and assign the cropped image to $im
+        }
+
+        $cropped = imagecropauto($cropped, IMG_CROP_SIDES);
+
+        imagepng($cropped, $path);
+        imagedestroy($im);
+
+        return $path;
+    }
+}

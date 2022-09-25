@@ -52,6 +52,7 @@ class StoreActivity extends FormRequest
             'media_file' => 'required_if:is_media_enabled,1|file',
             'status' => 'nullable',
             'is_focus_enabled' => 'required|boolean',
+            'focus_min_value' => 'nullable',
         ];
 
         if(in_array(request()->type, ['value', 'speedrun', 'badhabit'])) {

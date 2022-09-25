@@ -26,6 +26,7 @@ class Activity extends Model
         'is_hide',
         'is_ms_enable',
         'is_focus_enabled',
+        'focus_min_value',
         'criteria',
         'bonus_value',
         'penalty_value',
@@ -174,6 +175,24 @@ class Activity extends Model
                 }
             }
 
+            if($model->isDirty('is_focus_enabled') && $model->is_focus_enabled) {
+                PointFocus::recalculate($model, now()->month);
+            }
+        });
+
+        static::creating(function($model) {
+            // if change is_hide but value of status 0
+            // set is_hide to 1
+            if($model->is_hide == 1) {
+                $model->status = 0;
+                $model->bonus_value = 0;
+                $model->penalty_value = 0;
+            } else {
+                $model->status = 1;
+            }
+        });
+
+        static::updating(function($model) {
             if($model->isDirty('status')) {
                 if(!$model->status) {
                     $model->is_hide = 1;
@@ -192,11 +211,6 @@ class Activity extends Model
                 } else {
                     $model->status = 1;
                 }
-            }
-
-
-            if($model->isDirty('is_focus_enabled') && $model->is_focus_enabled) {
-                PointFocus::recalculate($model, now()->month);
             }
         });
 
