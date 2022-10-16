@@ -12,9 +12,16 @@
         $max = $result->max('count');
         @endphp
         <tr>
-            <td>total count</td>
+            <td>total score</td>
             @foreach($result as $idx => $activity)
-            <td>{{$activity['count']}}</td>
+            @php
+            $total = $activity['count'];
+
+            if(in_array($activity['type'], ['value', 'badhabit'])) {
+                $total = $activity['histories']->sum('value');
+            }
+            @endphp
+            <td>{{$total}}</td>
             @endforeach
         </tr>
         @for ($i = 0; $i < $max; $i++)

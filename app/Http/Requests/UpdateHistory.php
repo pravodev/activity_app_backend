@@ -29,7 +29,7 @@ class UpdateHistory extends FormRequest
         return [
             'activity_id' => 'integer|exists:activities,id',
             'date' => 'date_format:Y-m-d',
-            'time' => 'date_format:H:i:s',
+            'time' => 'nullable|date_format:H:i:s',
             // 'value' => 'numeric',
             // 'value_textfield' => 'string',
             'value' => [

@@ -31,18 +31,22 @@ class ActivityRepositoryImplementation extends BaseRepositoryImplementation impl
             $count_focus = 0;
 
             if($focus) {
-                if(\Carbon\Carbon::parse($focus->start_date)->isSameDay()) {
-                    $count_focus = 0;
-                } else if($focus){
+                // if(\Carbon\Carbon::parse($focus->start_date)->isSameDay()) {
+                //     $count_focus = 0;
+                // } else if($focus){
                     $count_focus = $focus->repeated_days_count;
-                }
+                // }
             }
 
-
+            $is_today_has_input = false;
+            if($activity['histories']->count()) {
+                $is_today_has_input = (bool) $activity['histories']->where('date', now()->format('Y-m-d'))->count();
+            }
+            $activity['is_today_has_input'] = $is_today_has_input;
             $activity['count_yesterday'] = $count_focus;
 
             if($activity['type'] == 'speedrun') {
-                $activity['score_target'] = $activity['score'] . " / " . $activity['count'];
+                $activity['score_target'] = $activity['score'] . ' (' . $activity['count'] . '/'. $activity['target'] . ')';
             }
 
             unset($activity['histories']);

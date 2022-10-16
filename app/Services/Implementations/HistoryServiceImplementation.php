@@ -52,6 +52,7 @@ class HistoryServiceImplementation implements HistoryServiceContract {
                 $history['value'] = 50;
             }
             $history["activity_id"] = $activityId;
+            $history['user_id'] = auth()->id();
             return $history;
         });
 
